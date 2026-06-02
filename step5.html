@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MISSION 5 — 恒星ファスタリス | FAST Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue-deep:#0a1628;--blue-mid:#1a3a6e;--blue-vivid:#1565d8;
+  --blue-bright:#3d8ef0;--blue-light:#7bb8f8;
+  --white:#fff;--gold:#f5c842;--green:#22c55e;--red:#ef4444;
+  --purple:#a855f7;--orange:#f97316;
+  --radius:20px;--radius-sm:12px;--radius-lg:28px;
+  --nav-h:72px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;min-height:100vh;font-family:'Noto Sans JP',sans-serif;
+  background:var(--blue-deep);color:var(--white);overflow-x:hidden;}
+
+/* BG */
+.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(160deg,#040d1f 0%,#0a1e4a 40%,#091535 100%);}
+.bg-canvas::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(21,101,216,.25) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 80%,rgba(61,142,240,.15) 0%,transparent 60%);}
+.star{position:absolute;border-radius:50%;background:white;opacity:0;
+  animation:twinkle var(--dur,3s) var(--delay,0s) infinite ease-in-out;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:var(--op,.7);transform:scale(1)}}
+
+/* WRAPPER */
+.app-wrapper{position:relative;z-index:1;max-width:430px;margin:0 auto;min-height:100vh;
+  display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+
+/* HEADER */
+.page-header{background:rgba(8,16,36,.97);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:14px 16px 12px;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.header-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;min-width:0;overflow:hidden;}
+.back-btn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;flex-shrink:0;text-decoration:none;color:white;}
+.header-meta{flex:1;min-width:0;overflow:hidden;}
+.step-label{font-size:10px;color:var(--blue-light);font-weight:700;letter-spacing:1px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.header-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:17px;font-weight:900;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.vitals-bar{display:flex;gap:6px;flex-wrap:wrap;min-width:0;overflow:hidden;}
+.vital-chip{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);
+  white-space:nowrap;}
+.vital-chip.warn{background:rgba(249,115,22,.15);color:#fdba74;border-color:rgba(249,115,22,.3);}
+.vital-chip.ok{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.25);}
+
+/* PROGRESS */
+.sim-progress{height:3px;background:rgba(255,255,255,.05);flex-shrink:0;}
+.sim-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-bright),var(--blue-light));transition:width .6s ease;}
+
+/* SCROLL */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:0 0 calc(var(--nav-h) + 80px);}
+.top-area{padding:14px 16px 0;}
+
+/* MONITOR */
+.monitor-card{background:rgba(0,0,0,.55);border:1px solid rgba(34,197,94,.22);border-radius:var(--radius);
+  padding:11px 14px;margin-bottom:12px;}
+.monitor-label{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(34,197,94,.65);margin-bottom:6px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.monitor-vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+.mv-item{text-align:center;min-width:0;}
+.mv-val{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#4ade80;line-height:1;margin-bottom:2px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.mv-val.danger{color:#f87171;animation:pulse-red .9s ease-in-out infinite;}
+.mv-val.warn{color:#fb923c;}
+.mv-label{font-size:8px;color:rgba(255,255,255,.38);word-break:break-all;overflow-wrap:break-word;min-width:0;}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.4}}
+.ecg-wrap{height:26px;overflow:hidden;margin-top:8px;}
+.ecg-svg{width:200%;height:100%;}
+
+/* FAST MAP */
+.fast-map{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:4px;}
+.fm-title{font-size:9px;font-weight:700;color:var(--blue-light);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.fm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.fm-item{text-align:center;padding:7px 2px;border-radius:8px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);transition:all .35s ease;}
+.fm-item.now{background:rgba(21,101,216,.22);border-color:rgba(61,142,240,.45);
+  animation:now-pulse 1.4s ease-in-out infinite;}
+.fm-item.neg{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);}
+.fm-item.pos{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.35);}
+@keyframes now-pulse{0%,100%{box-shadow:0 0 0 0 rgba(61,142,240,.35)}60%{box-shadow:0 0 0 6px rgba(61,142,240,0)}}
+.fm-icon{font-size:16px;display:block;margin-bottom:2px;}
+.fm-name{font-size:8px;color:rgba(255,255,255,.42);line-height:1.3;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.fm-res{font-size:9px;font-weight:700;margin-top:3px;min-height:11px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.fm-res.neg{color:#86efac;}
+.fm-res.pos{color:#fca5a5;}
+
+/* STREAM */
+.stream{padding-top:10px;}
+
+/* SONOBO */
+.sb-row{display:flex;align-items:flex-start;gap:10px;padding:0 16px;margin-bottom:12px;animation:fadeUp .35s ease;
+  min-width:0;overflow:hidden;}
+.sb-img{width:48px;height:48px;flex-shrink:0;}
+.sb-img img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(21,101,216,.45));}
+.sb-bubble{flex:1;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);
+  border-radius:0 var(--radius) var(--radius) var(--radius);padding:11px 13px;min-width:0;overflow:hidden;}
+.sb-name{font-size:10px;color:var(--blue-light);font-weight:700;margin-bottom:4px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.sb-text{font-size:13px;line-height:1.8;color:rgba(255,255,255,.9);
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.sb-text strong{color:var(--gold);}
+.sb-text .red{color:#fca5a5;font-weight:700;}
+
+/* FINDING */
+.finding{margin:0 16px 12px;border-radius:var(--radius-sm);padding:13px 15px;animation:fadeUp .35s ease;}
+.finding.neg{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.28);}
+.finding.pos{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);}
+.finding.info{background:rgba(61,142,240,.09);border:1px solid rgba(61,142,240,.28);}
+.finding.warn{background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.25);}
+.f-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;margin-bottom:6px;
+  min-width:0;overflow:hidden;flex-wrap:wrap;}
+.f-head strong{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.f-body{font-size:13px;line-height:1.82;color:rgba(255,255,255,.82);
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.f-body strong{color:var(--white);}
+.f-body .pos-txt{color:#fca5a5;font-weight:700;}
+.f-body .neg-txt{color:#86efac;font-weight:700;}
+
+/* HINT */
+.hint{margin:0 16px 12px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.23);
+  border-radius:var(--radius-sm);padding:12px 14px;animation:fadeUp .35s ease;}
+.hint-head{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.hint-body{font-size:12.5px;line-height:1.82;color:rgba(255,255,255,.78);
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* CHECKLIST */
+.checklist-wrap{margin:0 16px 12px;animation:fadeUp .35s ease;}
+.checklist-toggle-btn{width:100%;padding:12px 16px;
+  background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.35);
+  border-radius:var(--radius-sm);cursor:pointer;color:var(--white);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  transition:background .2s ease;text-align:left;min-width:0;}
+.checklist-toggle-btn:hover{background:rgba(168,85,247,.2);}
+.checklist-toggle-btn .clt-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+.checklist-toggle-btn .clt-left span{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.checklist-toggle-btn .clt-arrow{flex-shrink:0;font-size:14px;transition:transform .25s ease;}
+.checklist-toggle-btn.open .clt-arrow{transform:rotate(180deg);}
+.checklist-panel{display:none;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.22);
+  border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:14px 16px;}
+.checklist-panel.open{display:block;}
+.checklist-section-title{font-size:10px;font-weight:700;color:rgba(168,85,247,.85);letter-spacing:1px;
+  margin-bottom:8px;margin-top:12px;word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.checklist-section-title:first-child{margin-top:0;}
+.checklist-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);min-width:0;overflow:hidden;}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;
+  accent-color:var(--purple);cursor:pointer;margin-top:1px;}
+.checklist-item label{font-size:12.5px;line-height:1.7;color:rgba(255,255,255,.82);cursor:pointer;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;flex:1;}
+.checklist-item label .sub-note{display:block;font-size:11px;color:rgba(168,85,247,.7);margin-top:2px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* ALERT BAR */
+.alert-bar{margin:0 16px 12px;padding:10px 14px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;animation:fadeUp .3s ease;
+  min-width:0;overflow:hidden;}
+.alert-bar span{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.alert-bar.danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.38);color:#fca5a5;}
+.alert-bar.warn{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.28);color:#fdba74;}
+.alert-bar.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.28);color:#86efac;}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;padding:6px 16px;margin-bottom:4px;min-width:0;overflow:hidden;}
+.div-line{flex:1;height:1px;background:rgba(255,255,255,.07);}
+.div-label{font-size:10px;color:rgba(255,255,255,.2);font-weight:700;letter-spacing:1px;
+  white-space:nowrap;word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* PATIENT CARD */
+.patient-card{margin:0 16px 12px;background:rgba(21,101,216,.09);
+  border:1px solid rgba(61,142,240,.18);border-radius:var(--radius-sm);padding:12px 14px;animation:fadeUp .4s ease;}
+.pc-title{font-size:10px;font-weight:700;color:var(--blue-light);letter-spacing:1px;margin-bottom:7px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.pc-tags{display:flex;gap:5px;flex-wrap:wrap;min-width:0;overflow:hidden;}
+.pc-tag{font-size:11px;color:rgba(255,255,255,.7);background:rgba(255,255,255,.05);
+  padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.08);
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.pc-tag.red{color:#fca5a5;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.07);}
+
+/* CHOICES */
+.choices-wrap{padding:0 16px;margin-bottom:12px;animation:fadeUp .3s ease;}
+.choices-label{font-size:10px;color:var(--blue-light);font-weight:700;letter-spacing:1px;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;
+  word-break:break-all;overflow-wrap:break-word;}
+.choices-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(61,142,240,.3),transparent);}
+.choice-btn{width:100%;padding:13px 14px;border:1px solid rgba(61,142,240,.22);
+  background:rgba(255,255,255,.035);border-radius:var(--radius-sm);
+  text-align:left;cursor:pointer;color:var(--white);font-family:'Noto Sans JP',sans-serif;
+  font-size:13px;line-height:1.5;margin-bottom:8px;
+  display:flex;align-items:center;gap:11px;transition:transform .15s ease;min-width:0;overflow:hidden;}
+.choice-btn:active{transform:scale(.975);}
+.choice-btn .c-icon{font-size:20px;flex-shrink:0;}
+.choice-btn .c-body{flex:1;min-width:0;overflow:hidden;}
+.choice-btn .c-body .c-label{font-weight:700;display:block;margin-bottom:1px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.choice-btn .c-body .c-sub{font-size:11px;color:rgba(255,255,255,.48);display:block;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.choice-btn.sel-ok{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.09);}
+.choice-btn.sel-ng{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.07);}
+.choice-btn.sel-nu{border-color:rgba(251,191,36,.38);background:rgba(251,191,36,.06);}
+.choice-btn:disabled{opacity:.35;cursor:default;transform:none;}
+
+/* NEXT */
+.next-wrap{padding:0 16px;margin-bottom:8px;animation:fadeUp .3s ease;}
+.next-btn{width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--blue-vivid),#0d4fc0);
+  border:none;border-radius:var(--radius);cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;color:white;
+  box-shadow:0 5px 20px rgba(21,101,216,.4);
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s ease;
+  min-width:0;overflow:hidden;}
+.next-btn:active{transform:scale(.97);}
+.next-btn.soft{background:rgba(61,142,240,.18);box-shadow:none;border:1px solid rgba(61,142,240,.28);}
+.next-btn span{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* RESULT */
+.result-wrap{padding:24px 16px 100px;text-align:center;display:none;animation:fadeUp .5s ease;}
+.result-wrap.show{display:block;}
+.star-victoria-badge{
+  width:120px;height:120px;margin:0 auto 8px;
+  background:radial-gradient(circle,rgba(245,200,66,.25) 0%,rgba(168,85,247,.15) 50%,transparent 70%);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:60px;animation:float 3s ease-in-out infinite;
+  box-shadow:0 0 40px rgba(245,200,66,.3);}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.star-name-badge{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+  color:var(--gold);margin-bottom:20px;opacity:.8;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.res-sonobo{width:110px;height:110px;margin:0 auto 16px;}
+.res-sonobo img{width:100%;height:100%;object-fit:contain;}
+.res-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:24px;font-weight:900;margin-bottom:8px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.res-sub{font-size:13px;color:rgba(255,255,255,.65);line-height:1.75;margin-bottom:22px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* 称号カード */
+.title-card{
+  background:linear-gradient(135deg,rgba(245,200,66,.12),rgba(168,85,247,.1));
+  border:1px solid rgba(245,200,66,.4);border-radius:var(--radius);
+  padding:20px;margin-bottom:18px;text-align:center;
+  box-shadow:0 0 30px rgba(245,200,66,.1);}
+.title-label{font-size:10px;font-weight:700;color:rgba(245,200,66,.65);letter-spacing:2px;margin-bottom:10px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.title-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;
+  color:var(--gold);letter-spacing:2px;margin-bottom:6px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.title-jp{font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:700;
+  color:rgba(255,255,255,.7);word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.medal-row{font-size:32px;letter-spacing:8px;margin:10px 0 0;}
+
+.score-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:var(--radius);padding:18px;margin-bottom:18px;text-align:left;}
+.sc-row{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);gap:10px;min-width:0;overflow:hidden;}
+.sc-row:last-child{border-bottom:none;}
+.sc-label{font-size:12px;color:rgba(255,255,255,.5);flex-shrink:0;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.sc-val{font-size:12px;font-weight:700;color:var(--gold);text-align:right;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* 振り返り */
+.review-card{background:rgba(21,101,216,.08);border:1px solid rgba(61,142,240,.18);
+  border-radius:var(--radius-sm);padding:14px;text-align:left;margin-bottom:20px;}
+.rev-title{font-size:11px;font-weight:700;color:var(--blue-light);margin-bottom:9px;letter-spacing:1px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.rev-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;min-width:0;overflow:hidden;}
+.rev-dot{width:5px;height:5px;border-radius:50%;background:var(--blue-bright);margin-top:5px;flex-shrink:0;}
+.rev-text{font-size:12px;color:rgba(255,255,255,.75);line-height:1.7;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* 次のステップ案内 */
+.next-steps-card{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);
+  border-radius:var(--radius);padding:16px;margin-bottom:18px;text-align:left;}
+.ns-title{font-size:11px;font-weight:700;color:#86efac;margin-bottom:10px;letter-spacing:1px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.ns-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;min-width:0;overflow:hidden;}
+.ns-icon{font-size:20px;flex-shrink:0;}
+.ns-body{flex:1;min-width:0;overflow:hidden;}
+.ns-label{font-size:13px;font-weight:700;color:var(--white);
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.ns-desc{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6;margin-top:2px;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* BUTTONS */
+.btn-retry{width:100%;padding:15px;border:none;border-radius:var(--radius);cursor:pointer;
+  background:linear-gradient(135deg,var(--blue-vivid),#0d4fc0);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;color:white;
+  margin-bottom:10px;transition:transform .15s ease;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.btn-retry:active{transform:scale(.97);}
+.btn-home{width:100%;padding:15px;border:1px solid rgba(61,142,240,.35);border-radius:var(--radius);
+  cursor:pointer;background:rgba(61,142,240,.12);color:var(--blue-light);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .15s ease;margin-bottom:10px;min-width:0;overflow:hidden;}
+.btn-home:active{transform:scale(.97);}
+.btn-home span{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.btn-qcheck{width:100%;padding:15px;border:1px solid rgba(168,85,247,.4);border-radius:var(--radius);
+  cursor:pointer;background:rgba(168,85,247,.12);color:rgba(168,85,247,.9);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .15s ease;min-width:0;overflow:hidden;}
+.btn-qcheck:active{transform:scale(.97);}
+.btn-qcheck span{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.05)}30%{transform:scale(1)}}
+@keyframes starBurst{
+  0%{opacity:0;transform:scale(0) rotate(0deg)}
+  60%{opacity:1;transform:scale(1.2) rotate(15deg)}
+  100%{opacity:1;transform:scale(1) rotate(0deg)}
+}
+@keyframes titleGlow{
+  0%,100%{text-shadow:0 0 20px rgba(245,200,66,.4)}
+  50%{text-shadow:0 0 40px rgba(245,200,66,.8),0 0 80px rgba(245,200,66,.3)}
+}
+@keyframes otsukareFadeIn{
+  0%{opacity:0;transform:translateY(-18px) scale(.95)}
+  60%{opacity:1;transform:translateY(4px) scale(1.02)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 30px rgba(245,200,66,.15),0 0 0 0 rgba(245,200,66,.12)}
+  50%{box-shadow:0 0 60px rgba(245,200,66,.3),0 0 80px rgba(168,85,247,.2)}
+}
+@keyframes shimmer{
+  0%{background-position:200% center}
+  100%{background-position:-200% center}
+}
+@keyframes phase2Drop{
+  0%{opacity:0;transform:translateY(30px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* PHASE DIVIDER */
+.phase-divider{
+  display:flex;align-items:center;gap:12px;padding:10px 16px 6px;
+  margin:8px 0;}
+.ph-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(61,142,240,.3),transparent);}
+.ph-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;
+  color:rgba(61,142,240,.5);white-space:nowrap;}
+
+/* PHASE 2 CTA banner */
+.phase2-banner{
+  margin:0 16px 8px;
+  background:linear-gradient(135deg,rgba(21,101,216,.18),rgba(168,85,247,.14));
+  border:1px solid rgba(61,142,240,.3);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:background .2s;}
+.phase2-banner:hover{background:linear-gradient(135deg,rgba(21,101,216,.28),rgba(168,85,247,.22));}
+.phase2-banner .ph-icon{font-size:26px;flex-shrink:0;}
+.phase2-banner .ph-body{flex:1;min-width:0;}
+.phase2-banner .ph-body strong{display:block;font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px;
+  word-break:break-all;}
+.phase2-banner .ph-body span{font-size:11px;color:rgba(255,255,255,.5);
+  word-break:break-all;}
+.phase2-banner .ph-arrow{font-size:20px;color:rgba(61,142,240,.7);flex-shrink:0;}
+
+/* OTSUKARE CARD */
+.otsukare-card{
+  margin:0 16px 16px;
+  background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(168,85,247,.1),rgba(21,101,216,.1));
+  border:1px solid rgba(245,200,66,.4);border-radius:var(--radius-lg);
+  padding:22px 18px 18px;text-align:center;
+  animation:otsukareFadeIn .8s cubic-bezier(.34,1.3,.64,1) both, glowPulse 4s ease-in-out 1s infinite;
+  position:relative;overflow:hidden;}
+.otsukare-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);
+  background-size:200% 100%;animation:shimmer 3s linear 1s infinite;}
+.otsukare-emoji{font-size:40px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+.otsukare-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:20px;font-weight:900;
+  color:var(--gold);margin-bottom:6px;letter-spacing:1px;
+  animation:titleGlow 3s ease-in-out 1s infinite;}
+.otsukare-msg{font-size:13px;line-height:1.85;color:rgba(255,255,255,.8);
+  word-break:break-all;}
+</style>
+</head>
+<body>
+<div class="bg-canvas" id="bgCanvas"></div>
+<div class="siren-flash" id="sirenFlash"
+  style="display:none;position:fixed;inset:0;z-index:300;pointer-events:none;background:rgba(239,68,68,.07);"></div>
+
+<div class="app-wrapper">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-row">
+      <a class="back-btn" href="home.html">←</a>
+      <div class="header-meta">
+        <div class="step-label">MISSION 5 — 恒星ファスタリス ⭐</div>
+        <div class="header-title">症例シミュレーション 🚨</div>
+      </div>
+    </div>
+    <div class="vitals-bar">
+      <span class="vital-chip">BP 90/60 🔴</span>
+      <span class="vital-chip warn">HR 118 ⚡</span>
+      <span class="vital-chip warn">RR 22</span>
+      <span class="vital-chip ok">SpO2 98%</span>
+      <span class="vital-chip ok">GCS 15</span>
+    </div>
+  </div>
+  <div class="sim-progress"><div class="sim-progress-fill" id="progressBar" style="width:0%"></div></div>
+
+  <!-- CONTENT -->
+  <div class="scroll-content" id="scrollContent">
+
+    <div class="top-area">
+      <!-- VITAL MONITOR -->
+      <div class="monitor-card" id="monitorCard">
+        <div class="monitor-label">📡 VITAL MONITOR</div>
+        <div class="monitor-vitals">
+          <div class="mv-item"><div class="mv-val danger">90/60</div><div class="mv-label">BP mmHg</div></div>
+          <div class="mv-item"><div class="mv-val warn">118</div><div class="mv-label">HR /min</div></div>
+          <div class="mv-item"><div class="mv-val warn">22</div><div class="mv-label">RR /min</div></div>
+          <div class="mv-item"><div class="mv-val">98</div><div class="mv-label">SpO2 %</div></div>
+        </div>
+        <div class="ecg-wrap">
+          <svg class="ecg-svg" id="ecgSvg" viewBox="0 0 800 26" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+
+      <!-- FAST MAP -->
+      <div class="fast-map" id="fastMap" style="display:none">
+        <div class="fm-title">🔍 FAST — 検索部位マップ</div>
+        <div class="fm-grid">
+          <div class="fm-item" id="fm-sub">
+            <span class="fm-icon">❤️</span>
+            <div class="fm-name">心窩部</div>
+            <div class="fm-res" id="fr-sub"></div>
+          </div>
+          <div class="fm-item" id="fm-rub">
+            <span class="fm-icon">🟤</span>
+            <div class="fm-name">モリソン窩<br>右胸腔</div>
+            <div class="fm-res" id="fr-rub"></div>
+          </div>
+          <div class="fm-item" id="fm-lub">
+            <span class="fm-icon">🟣</span>
+            <div class="fm-name">脾周囲<br>左胸腔</div>
+            <div class="fm-res" id="fr-lub"></div>
+          </div>
+          <div class="fm-item" id="fm-pel">
+            <span class="fm-icon">🔵</span>
+            <div class="fm-name">膀胱直腸窩</div>
+            <div class="fm-res" id="fr-pel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STREAM -->
+    <div class="stream" id="stream"></div>
+
+    <!-- RESULT -->
+    <div class="result-wrap" id="resultWrap">
+
+      <!-- ═══ PHASE 1: 結果発表 ════════════════════════════════ -->
+      <div id="resultPhase1">
+
+        <!-- お疲れ様カード -->
+        <div class="otsukare-card" id="otsukareCard" style="display:none">
+          <span class="otsukare-emoji" id="otsukareEmoji">🌌</span>
+          <div class="otsukare-title" id="otsukareTitle">お疲れ様でした！</div>
+          <div class="otsukare-msg" id="otsukareMsg">長旅を走り抜いたキャプテン、本当によく頑張った。<br>この銀河の果てまで、あなたの判断力が患者を救った。</div>
+        </div>
+
+        <div class="star-victoria-badge">⭐</div>
+        <div class="star-name-badge">★ STAR FASTALIS ★</div>
+        <div class="res-sonobo" style="animation:heartbeat 2.2s ease-in-out infinite">
+          <img src="assets/sonobo_6.png" id="resSonobo" alt="">
+        </div>
+        <div class="res-title" id="resTitle">症例完了！</div>
+        <div class="res-sub" id="resSub">振り返りを確認しよう。</div>
+
+        <div class="title-card" id="titleCard" style="display:none">
+          <div class="title-label">🏅 AWARDED TITLE</div>
+          <div class="title-name" id="titleName">Galactic Rescue Cadet</div>
+          <div class="title-jp" id="titleJp">銀河の見習い救命医</div>
+          <div class="medal-row">🏅⭐🚀</div>
+        </div>
+
+        <div class="score-card">
+          <div class="sc-row"><span class="sc-label">判断の正確さ</span><span class="sc-val" id="scScore">-</span></div>
+          <div class="sc-row"><span class="sc-label">FAST所見まとめ</span><span class="sc-val">脾周囲・骨盤に液体貯留（陽性）</span></div>
+          <div class="sc-row"><span class="sc-label">診断</span><span class="sc-val">腹腔内出血（脾損傷疑い）</span></div>
+          <div class="sc-row"><span class="sc-label">緊急度</span><span class="sc-val">🔴 外科コール・緊急手術/IVR</span></div>
+        </div>
+
+        <!-- Phase 2 への誘導バナー -->
+        <div class="phase2-banner" onclick="scrollToPhase2()">
+          <span class="ph-icon">📋</span>
+          <div class="ph-body">
+            <strong>振り返りと次のミッションを見る</strong>
+            <span>学習ポイント・アドバイス・名札生成</span>
+          </div>
+          <span class="ph-arrow">↓</span>
+        </div>
+
+        <!-- もう一度チャレンジ（Phase1直下） -->
+        <div style="padding:0;margin-bottom:8px;">
+          <button class="btn-retry" onclick="resetSim()">🔄 もう一度チャレンジ</button>
+        </div>
+
+      </div>
+
+      <!-- ═══ PHASE 2: 振り返り & 次のステップ ════════════════ -->
+      <div id="resultPhase2" style="display:none;padding-top:8px;">
+
+        <div class="phase-divider">
+          <div class="ph-line"></div>
+          <div class="ph-label">DEBRIEF &amp; NEXT MISSION</div>
+          <div class="ph-line"></div>
+        </div>
+
+        <div class="review-card" style="animation:phase2Drop .5s ease both;">
+          <div class="rev-title">🎓 振り返りポイント</div>
+          <div class="rev-item"><div class="rev-dot"></div><div class="rev-text"><strong>バイタル不安定＋FAST陽性</strong>のセットを見たら、即外科コール。CTはその後でいい。</div></div>
+          <div class="rev-item"><div class="rev-dot"></div><div class="rev-text">左側腹部打撲では<strong>脾損傷を先に疑う</strong>。脾周囲は念入りに確認する習慣をつけよう。</div></div>
+          <div class="rev-item"><div class="rev-dot"></div><div class="rev-text">FASTは「ある / ない」のYES/NOツール。<strong>2分以内に答えを出す</strong>ことが目標。</div></div>
+          <div class="rev-item"><div class="rev-dot"></div><div class="rev-text">心窩部・モリソン窩が陰性でも<strong>脾周囲を省略しない</strong>。4窓全部当てる習慣が命を救う。</div></div>
+        </div>
+
+        <div class="next-steps-card" style="animation:phase2Drop .5s .12s ease both;">
+          <div class="ns-title">🚀 キャプテンへのアドバイス</div>
+          <div class="ns-item">
+            <span class="ns-icon">🔁</span>
+            <div class="ns-body">
+              <div class="ns-label">繰り返しトレーニングが力になる</div>
+              <div class="ns-desc">自信のないMISSION（惑星）に戻って、何度でも練習しよう。実際の現場で体が動くまで繰り返すことが大切だ。</div>
+            </div>
+          </div>
+          <div class="ns-item">
+            <span class="ns-icon">⚡</span>
+            <div class="ns-body">
+              <div class="ns-label">2周目以降はクイックチェックを活用！</div>
+              <div class="ns-desc">要点だけをサッと確認できる「クイックチェック」で、知識を素早くブラッシュアップできる。本番前の確認にも最適！</div>
+            </div>
+          </div>
+          <div class="ns-item">
+            <span class="ns-icon">🌌</span>
+            <div class="ns-body">
+              <div class="ns-label">銀河の救命医として、前へ進もう</div>
+              <div class="ns-desc">FASTはスタートラインだ。これからも学び続けて、より多くの命を救う力をつけていこう。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 名札生成ボタン（称号がある場合） -->
+        <div id="badgeEntrySection" style="display:none;margin-bottom:16px;animation:phase2Drop .5s .24s ease both;">
+          <div style="background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(168,85,247,.1));
+            border:1px solid rgba(245,200,66,.35);border-radius:20px;padding:20px 16px;text-align:center;
+            box-shadow:0 0 30px rgba(245,200,66,.1);">
+            <div style="font-size:32px;margin-bottom:8px;animation:float 2s ease-in-out infinite;">🪪</div>
+            <div style="font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;
+              color:#f5c842;margin-bottom:6px;">オリジナル名札を作る</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:14px;">
+              名前を入力して、あなただけの<br>救命医称号名札を受け取ろう！
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="text" id="captainNameInput" placeholder="キャプテンの名前"
+                style="flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(245,200,66,.4);
+                background:rgba(0,0,0,.4);color:white;font-family:'Noto Sans JP',sans-serif;font-size:14px;
+                outline:none;min-width:0;">
+              <button onclick="generateBadge()" style="padding:12px 16px;border-radius:12px;border:none;
+                background:linear-gradient(135deg,#f5c842,#f97316);color:#0a1628;
+                font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;font-weight:900;
+                cursor:pointer;white-space:nowrap;flex-shrink:0;transition:transform .15s ease;"
+                onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">
+                生成！
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生成された名札 -->
+        <div id="badgeDisplay" style="display:none;margin-bottom:16px;animation:badgeReveal .7s ease both;">
+          <!-- JSで生成 -->
+        </div>
+
+        <div style="padding:0 0 100px;">
+          <button class="btn-home" onclick="warpTo('home.html')">
+            <span>マップへ戻る</span>
+          </button>
+          <button class="btn-qcheck" onclick="warpTo('quickcheck.html')">
+            <span>⚡</span><span>クイックチェックへ</span>
+          </button>
+        </div>
+
+      </div><!-- /Phase 2 -->
+
+    </div><!-- /resultWrap -->
+
+  </div>
+</div>
+
+<script>
+// ══ AUDIO ══════════════════════════════════════════════════════
+const AC=window.AudioContext||window.webkitAudioContext;
+let actx=null;
+const getCtx=()=>{if(!actx)actx=new AC();if(actx.state==='suspended')actx.resume();return actx;};
+const beep=(f,d,t='sine',v=0.15,dl=0)=>{try{
+  const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);o.type=t;o.frequency.value=f;
+  const s=c.currentTime+dl;
+  g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+0.02);g.gain.linearRampToValueAtTime(0,s+d);
+  o.start(s);o.stop(s+d+.05);
+}catch(e){}};
+const sndClick =()=>beep(1100,.04,'square',.07);
+const sndOk    =()=>{beep(660,.09,'sine',.13,0);beep(880,.12,'sine',.13,.11);beep(1100,.16,'sine',.12,.24);};
+const sndNg    =()=>{beep(240,.13,'sawtooth',.11,0);beep(190,.17,'sawtooth',.09,.17);};
+const sndNu    =()=>beep(440,.09,'triangle',.11);
+const sndAlert =()=>{beep(820,.07,'square',.13,0);beep(820,.07,'square',.13,.14);beep(620,.11,'square',.12,.30);};
+const sndPing  =()=>beep(1400,.06,'sine',.09);
+const sndSiren =()=>{for(let i=0;i<5;i++){beep(580+i*55,.18,'sawtooth',.09,i*.21);beep(870-i*35,.18,'sawtooth',.09,i*.21+.09);}};
+const sndHb    =()=>{beep(75,.045,'sine',.18,0);beep(75,.04,'sine',.16,.065);};
+const sndReward=()=>{[523,659,784,1047,1319].forEach((freq,i)=>{
+  beep(freq,.5,'triangle',.25,i*.12);
+});};
+let hbTimer=null;
+const startHb=(bpm=118)=>{stopHb();const ms=60000/bpm;hbTimer=setInterval(sndHb,ms);};
+const stopHb =()=>{if(hbTimer){clearInterval(hbTimer);hbTimer=null;}};
+document.body.addEventListener('click',()=>getCtx(),{once:true});
+document.body.addEventListener('touchstart',()=>getCtx(),{once:true,passive:true});
+
+// ══ WARP ══════════════════════════════════════════════════════
+function warpTo(url){
+  sndClick();
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`position:fixed;inset:0;z-index:9999;background:black;opacity:0;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;`;
+  for(let i=0;i<30;i++){
+    const streak=document.createElement('div');
+    const angle=Math.random()*360;const len=Math.random()*200+50;
+    streak.style.cssText=`position:absolute;left:50%;top:50%;width:${len}px;height:2px;
+      background:linear-gradient(90deg,white,transparent);transform-origin:left center;
+      transform:rotate(${angle}deg) scaleX(0);animation:streakOut .4s .1s ease forwards;`;
+    overlay.appendChild(streak);
+  }
+  const txt=document.createElement('p');
+  txt.textContent='WARP DRIVE ENGAGED';
+  txt.style.cssText=`font-family:'Orbitron',sans-serif;font-size:14px;color:white;letter-spacing:4px;
+    opacity:0;animation:fadeInOut .8s .2s ease forwards;z-index:1;`;
+  overlay.appendChild(txt);
+  document.body.appendChild(overlay);
+  const style=document.createElement('style');
+  style.textContent=`
+    @keyframes streakOut{0%{transform:rotate(var(--a,0deg)) scaleX(0) translateX(0);}
+      50%{transform:rotate(var(--a,0deg)) scaleX(1) translateX(0);opacity:1;}
+      100%{transform:rotate(var(--a,0deg)) scaleX(0) translateX(300px);opacity:0;}}
+    @keyframes fadeInOut{0%,100%{opacity:0}30%,70%{opacity:1}}`;
+  document.head.appendChild(style);
+  overlay.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'})
+    .finished.then(()=>{setTimeout(()=>{
+      overlay.animate([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'})
+        .finished.then(()=>{location.href=url;});
+    },700);});
+}
+
+// ══ STARS ═════════════════════════════════════════════════════
+(()=>{const bg=document.getElementById('bgCanvas');
+  for(let i=0;i<70;i++){const s=document.createElement('div');s.className='star';
+    const z=Math.random()*2.5+.5;
+    s.style.cssText=`width:${z}px;height:${z}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${Math.random()*3+2}s;--delay:${Math.random()*4}s;--op:${Math.random()*.6+.2};`;
+    bg.appendChild(s);}})();
+
+// ══ ECG ═══════════════════════════════════════════════════════
+(()=>{
+  const svg=document.getElementById('ecgSvg');
+  const W=800,H=26,base=H*.72,cyc=68;
+  let p=`M0 ${base}`;
+  for(let x=0;x<W;x+=cyc){
+    p+=` L${x+4} ${base} Q${x+7} ${base-3} ${x+10} ${base} L${x+13} ${base}`;
+    p+=` L${x+15} ${base+5} L${x+18} ${base-17} L${x+21} ${base+4} L${x+25} ${base}`;
+    p+=` Q${x+32} ${base-5} ${x+38} ${base} L${x+cyc} ${base}`;
+  }
+  svg.innerHTML=`<path d="${p}" fill="none" stroke="rgba(74,222,128,.65)" stroke-width="1.4"/>`;
+  let off=0;
+  (function go(){off=(off+1.4)%cyc;svg.style.transform=`translateX(-${off}px)`;requestAnimationFrame(go);})();
+})();
+
+// ══ STATE ═════════════════════════════════════════════════════
+let stepN=0,correct=0,total=0;
+const mapSt={sub:'',rub:'',lub:'',pel:''};
+
+// ══ DOM HELPERS ═══════════════════════════════════════════════
+const stream=document.getElementById('stream');
+const sc=document.getElementById('scrollContent');
+const scrollBot=()=>{if(stream.style.display==='none')return;setTimeout(()=>sc.scrollTop=sc.scrollHeight,80);};
+const setProgress=p=>document.getElementById('progressBar').style.width=p+'%';
+
+function setMap(v,st){
+  mapSt[v]=st;
+  const el=document.getElementById('fm-'+v);
+  const re=document.getElementById('fr-'+v);
+  if(!el)return;
+  el.classList.remove('now','neg','pos');
+  re.className='fm-res';re.textContent='';
+  if(st==='now')el.classList.add('now');
+  else if(st==='neg'){el.classList.add('neg');re.classList.add('neg');re.textContent='陰性';}
+  else if(st==='pos'){el.classList.add('pos');re.classList.add('pos');re.textContent='陽性!';}
+}
+function clearNow(){['sub','rub','lub','pel'].forEach(v=>{if(mapSt[v]==='now')setMap(v,'');});}
+function app(el){stream.appendChild(el);scrollBot();}
+
+// ── sonobo ──
+function sb(img,txt){
+  const d=document.createElement('div');d.className='sb-row';
+  d.innerHTML=`<div class="sb-img"><img src="assets/${img}" alt=""></div>
+    <div class="sb-bubble"><div class="sb-name">🤖 ソノボくん</div><div class="sb-text">${txt}</div></div>`;
+  app(d);
+}
+
+// ── finding ──
+function fnd(cls,icon,head,body){
+  const d=document.createElement('div');d.className=`finding ${cls}`;
+  d.innerHTML=`<div class="f-head">${icon} <strong>${head}</strong></div><div class="f-body">${body}</div>`;
+  app(d);
+}
+
+// ── hint ──
+function hnt(head,body){
+  const d=document.createElement('div');d.className='hint';
+  d.innerHTML=`<div class="hint-head">💡 ${head}</div><div class="hint-body">${body}</div>`;
+  app(d);
+}
+
+// ── alert bar ──
+function alrt(cls,icon,txt){
+  const d=document.createElement('div');d.className=`alert-bar ${cls}`;
+  d.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${txt}</span>`;app(d);
+}
+
+// ── divider ──
+function div(txt){
+  const d=document.createElement('div');d.className='divider';
+  d.innerHTML=`<div class="div-line"></div><div class="div-label">${txt}</div><div class="div-line"></div>`;
+  app(d);
+}
+
+// ── choices ──
+function cho(label,opts,cb){
+  const wrap=document.createElement('div');wrap.className='choices-wrap';
+  wrap.innerHTML=`<div class="choices-label">${label}</div>`;
+  opts.forEach(o=>{
+    const btn=document.createElement('button');btn.className='choice-btn';
+    btn.innerHTML=`<span class="c-icon">${o.icon}</span><div class="c-body"><span class="c-label">${o.label}</span>${o.sub?`<span class="c-sub">${o.sub}</span>`:''}</div>`;
+    btn.addEventListener('click',()=>{
+      sndClick();
+      wrap.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;b.style.opacity='.32';});
+      btn.style.opacity='1';
+      btn.classList.add(o.res==='ok'?'sel-ok':o.res==='ng'?'sel-ng':'sel-nu');
+      total++;if(o.res==='ok')correct++;
+      cb(o);
+    });
+    wrap.appendChild(btn);
+  });
+  app(wrap);
+}
+
+// ── next button ──
+function nxt(label,cb,soft=false){
+  const wrap=document.createElement('div');wrap.className='next-wrap';
+  const btn=document.createElement('button');btn.className='next-btn'+(soft?' soft':'');
+  btn.innerHTML=`<span>${label}</span><span style="flex-shrink:0">→</span>`;
+  btn.addEventListener('click',()=>{sndClick();cb();});
+  wrap.appendChild(btn);app(wrap);
+}
+
+// ── チェックリスト付き「描出できましたか？」prompt ──
+// checklistItems: [{section:"見出し"(optional), items:["チェック項目",...]}]
+function askDep(viewLabel, onYes, checklistItems){
+  cho(`▶ ${viewLabel}：描出できましたか？`,[
+    {icon:'✅',label:'できた！',sub:'目的の構造が画面に映っている',res:'ok'},
+    {icon:'❓',label:'うまく映らない…',sub:'像がぶれる・構造が見つからない',res:'nu'},
+  ],o=>{
+    if(o.res==='ok'){sndOk();onYes();}
+    else{
+      sndNu();
+
+      // チェックリスト（即表示）
+      if(checklistItems && checklistItems.length>0){
+        const cw=document.createElement('div');cw.className='checklist-wrap';
+
+        // ヘッダーラベル
+        const header=document.createElement('div');
+        header.style.cssText=`display:flex;align-items:center;gap:8px;padding:10px 14px 8px;
+          background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.35);
+          border-radius:${checklistItems.length>0?'var(--radius-sm) var(--radius-sm) 0 0':'var(--radius-sm)'};
+          font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:700;color:var(--white);`;
+        header.innerHTML=`<span>🔎</span><span>確認チェックリスト</span>`;
+
+        const panel=document.createElement('div');
+        panel.className='checklist-panel open';
+
+        // チェックリスト内容生成
+        let checkId=0;
+        checklistItems.forEach(section=>{
+          if(section.section){
+            const secTitle=document.createElement('div');
+            secTitle.className='checklist-section-title';
+            secTitle.textContent=`📍 ${section.section}`;
+            panel.appendChild(secTitle);
+          }
+          section.items.forEach(item=>{
+            const itemDiv=document.createElement('div');
+            itemDiv.className='checklist-item';
+            const id=`chk_${Date.now()}_${checkId++}`;
+            // サブノート（→で始まる行）
+            const lines=item.split(/(?=→|難しい場合)/);
+            const mainText=lines[0].replace(/^□\s*/,'').trim();
+            const subText=lines.slice(1).map(l=>l.trim()).join(' ');
+            itemDiv.innerHTML=`
+              <input type="checkbox" id="${id}">
+              <label for="${id}">${mainText}${subText?`<span class="sub-note">${subText}</span>`:''}</label>`;
+            panel.appendChild(itemDiv);
+          });
+        });
+
+        cw.appendChild(header);
+        cw.appendChild(panel);
+        app(cw);
+      }
+
+      nxt('コツを確認しながら進む',onYes,true);
+    }
+  });
+}
+
+// ── siren ──
+function sirenEffect(){
+  sndSiren();
+  const sf=document.getElementById('sirenFlash');
+  sf.style.display='block';
+  let n=0;
+  const fl=setInterval(()=>{
+    sf.style.opacity=n%2===0?'1':'0';
+    n++;if(n>8){clearInterval(fl);sf.style.display='none';}
+  },280);
+}
+
+// ══ CHECKLISTS DATA ═══════════════════════════════════════════
+
+const CL_SUBXIPHOID=[
+  {items:[
+    'プローブを上から持っている（最初きちんと寝かしている）',
+    'プローブを肋骨弓にはめ込むように当てている（少し強めに押し込むイメージ）',
+    '息を吸って止めてもらった時に評価している',
+    'その際、プローブの位置がズレていない（よく滑ってしまう）',
+    '心臓は左に寄っているとはいえ、ほぼ正中にある',
+  ]}
+];
+
+const CL_MORRISON=[
+  {items:[
+    '小指や薬指を患者さんの体につけることで、プローブを安定して持てている',
+    '肋骨の走行に注意し、肋骨を避けられている →難しい場合は実際に肋間を触って確認してみる',
+    '剣状突起の高さくらいの肋間に当てている →描出できない場合は、一肋間上げたり下げたりしてみる',
+    'プローブが腹側に寄り過ぎていない（腎臓は背側にある）',
+    '超音波ビームが背中の方へ向くようにプローブを当てる',
+    'カーテンサインを見るときにプローブを一肋間頭側へ上げている',
+  ]}
+];
+
+const CL_SPLENORENAL=[
+  {items:[
+    '小指や薬指を患者さんの体につけることで、プローブを安定して持てている',
+    'モリソン窩の時よりも背側の肋間に当てている',
+    '肋骨の走行に注意し、肋骨を避けられている →背側にいくほど、肋骨カーブは縦に近づく →難しい場合は実際に肋間を触って確認してみる',
+    '剣状突起の高さくらいの肋間に当てている →描出できない場合は、一肋間上げたり下げたりしてみる',
+    '腕を上げてもらう、息を吸って止めてもらう',
+  ]}
+];
+
+// ══ STEPS ═════════════════════════════════════════════════════
+
+const STEPS=[
+
+/* 0: 搬入 */
+()=>{
+  setProgress(5);
+
+  // ★ FASTARISオープニング演出
+  const introEl=document.createElement('div');
+  introEl.style.cssText=`
+    margin:0 16px 16px;
+    background:linear-gradient(135deg,rgba(245,200,66,.07),rgba(168,85,247,.1),rgba(21,101,216,.08));
+    border:1px solid rgba(245,200,66,.32);
+    border-radius:20px;padding:20px 16px 16px;text-align:center;
+    animation:fadeUp .5s ease;
+    box-shadow:0 0 40px rgba(245,200,66,.1),0 0 80px rgba(168,85,247,.07);`;
+  introEl.innerHTML=`
+    <div id="starSpinEl" style="font-size:56px;animation:starSpin 1.8s ease-out both;
+      display:inline-block;margin-bottom:8px;filter:drop-shadow(0 0 16px rgba(245,200,66,.7))">⭐</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;
+      color:#f5c842;letter-spacing:4px;margin-bottom:4px;
+      text-shadow:0 0 20px rgba(245,200,66,.7),0 0 50px rgba(245,200,66,.3);">
+      FASTALIS
+    </div>
+    <div style="font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;font-weight:700;
+      color:rgba(255,255,255,.55);margin-bottom:16px;letter-spacing:2px;">
+      ─ 最後の恒星・最終ミッション ─
+    </div>
+    <div style="background:rgba(0,0,0,.4);border:1px solid rgba(245,200,66,.18);
+      border-radius:12px;padding:12px 14px;text-align:left;">
+      <div style="font-size:9px;font-weight:700;color:rgba(245,200,66,.5);
+        letter-spacing:2px;margin-bottom:8px;text-align:center;">✦ STAR NAME ORIGIN ✦</div>
+      <div style="font-size:12.5px;line-height:1.9;color:rgba(255,255,255,.82);text-align:left;">
+        <span style="color:#f5c842;font-weight:700;font-family:'Orbitron',sans-serif;font-size:11px;">FAST</span>
+        <span style="color:rgba(255,255,255,.4);margin:0 5px;font-size:11px;">＋</span>
+        <span style="color:#7bb8f8;font-weight:700;font-family:'Orbitron',sans-serif;font-size:11px;">Polaris</span>
+        <span style="color:rgba(255,255,255,.4);font-size:11px;">（北極星）</span>
+        <span style="color:rgba(255,255,255,.4);margin:0 5px;font-size:11px;">=</span>
+        <span style="color:#f5c842;font-weight:900;font-family:'Orbitron',sans-serif;font-size:12px;">FASTALIS</span>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.62);line-height:1.85;margin-top:7px;
+        border-top:1px solid rgba(255,255,255,.07);padding-top:8px;">
+        救命の現場で迷ったとき、最初に見るべき<strong style="color:rgba(255,255,255,.85)">「道標」</strong>となる星。<br>
+        北極星が航海者を正しい方角に導くように、<strong style="color:#f5c842">FASTARISはキャプテンを正しい判断へ導く。</strong>
+      </div>
+    </div>`;
+  app(introEl);
+
+  // アニメ定義追加
+  if(!document.getElementById('fastalisStyles')){
+    const st=document.createElement('style');
+    st.id='fastalisStyles';
+    st.textContent=`
+      @keyframes starSpin{
+        0%{transform:scale(0) rotate(-200deg);opacity:0;}
+        60%{transform:scale(1.3) rotate(15deg);opacity:1;}
+        80%{transform:scale(0.95) rotate(-5deg);}
+        100%{transform:scale(1) rotate(0deg);}
+      }
+      @keyframes badgeReveal{
+        0%{opacity:0;transform:scale(0.7) translateY(20px);}
+        70%{transform:scale(1.05) translateY(-4px);}
+        100%{opacity:1;transform:scale(1) translateY(0);}
+      }
+      @keyframes nameGlow{
+        0%,100%{text-shadow:0 0 10px rgba(245,200,66,.4),0 0 20px rgba(168,85,247,.2);}
+        50%{text-shadow:0 0 30px rgba(245,200,66,.9),0 0 60px rgba(245,200,66,.4),0 0 100px rgba(168,85,247,.3);}
+      }
+      @keyframes confettiFall{
+        0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+        100%{transform:translateY(100px) rotate(360deg);opacity:0;}
+      }
+      @keyframes stampIn{
+        0%{transform:scale(2) rotate(-8deg);opacity:0;}
+        70%{transform:scale(0.95) rotate(2deg);opacity:1;}
+        100%{transform:scale(1) rotate(0deg);opacity:1;}
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  setTimeout(()=>{
+    sirenEffect();
+    setTimeout(()=>{
+    alrt('danger','🚨','救急搬送！バイク事故 — 25歳男性 搬入');
+    const pc=document.createElement('div');
+    pc.className='patient-card';
+    pc.innerHTML=`<div class="pc-title">🧑 患者情報</div>
+      <div class="pc-tags">
+        <span class="pc-tag">25歳 男性</span>
+        <span class="pc-tag red">BP 90/60 🔴</span>
+        <span class="pc-tag red">HR 118 ⚡</span>
+        <span class="pc-tag">RR 22</span><span class="pc-tag">SpO2 98%</span><span class="pc-tag">GCS 15</span>
+      </div>
+      <div class="pc-tags" style="margin-top:6px;">
+        <span class="pc-tag red">左側腹部打撲</span>
+        <span class="pc-tag red">左上腹部圧痛</span>
+        <span class="pc-tag">外出血なし</span>
+        <span class="pc-tag">冷汗あり</span>
+      </div>`;
+    app(pc);
+    sb('sonobo_8.png',
+      `キャプテン、患者が搬入されました。<br>
+       <span class="red">BP 90/60、HR 118</span>……バイタルが不安定だ。<br>
+       外出血はない。<strong>内出血を疑う状況</strong>だ。<br><br>
+       まずJATECに準拠した<strong>ABCDE評価</strong>を行う。<br>
+       A（気道）・B（呼吸）・C（循環）と評価を進めると、<strong>Cの段階で出血源の検索が必要</strong>になる。<br>
+       ここでFASTが登場する。さあ、最初に何をする？`);
+    cho('▶ 最初に何をするか？',[
+      {icon:'🔊',label:'FASTを実施する',sub:'ABCDE評価のC（循環）で出血源を超音波検索',res:'ok'},
+      {icon:'🖥',label:'造影CTへ搬送',sub:'詳細な画像評価を先行させる',res:'ng'},
+    ],o=>{
+      if(o.res==='ok'){
+        sndOk();
+        fnd('neg','✅','正しい判断！',
+          `JATEC準拠のABCDE評価の流れ：<br>
+           A（気道確保）→ B（呼吸評価）→ <strong>C（循環）</strong>で出血の有無を確認。<br>
+           バイタル不安定＋外出血なし → 腹腔内出血を疑い<strong>FASTが最優先</strong>。<br>
+           ルート確保・採血は並行作業でOK。`);
+      }else{
+        sndNg();
+        fnd('pos','⚠️','待って',
+          'バイタル不安定例のCT搬送は移動中急変のリスクが高い。<strong>まずベッドサイドでFAST</strong>を行うのが鉄則。');
+      }
+      nxt('FASTを開始する',()=>run(1));
+    });
+    },200);
+  },800);
+},
+
+/* 1: 心窩部 */
+()=>{
+  setProgress(20);
+  clearNow();setMap('sub','now');
+  document.getElementById('fastMap').style.display='';
+  div('FAST ① ─ 心窩部ビュー');
+  sb('sonobo_5.png',
+    `キャプテン、最初は<strong>心窩部</strong>だ。<br>
+     剣状突起のすぐ下にプローブを当てる。<br>
+     心臓を画面全体に描出して、<strong>心膜腔に液体がないか</strong>確認しよう。<br>
+     実際にプローブを当ててみてください。`);
+  askDep('心窩部ビュー',
+    ()=>{
+      sndPing();
+      fnd('neg','📋','心窩部ビュー ─ 所見',
+        `<strong>心膜腔：液体貯留なし</strong><br>
+         心臓の周囲（心膜腔）に黒いエコーフリースペースを認めない。<br>
+         ➜ <span class="neg-txt">心タンポナーデは否定的。</span>`);
+      setMap('sub','neg');
+      nxt('次：右側腹部を確認する',()=>run(2));
+    },
+    CL_SUBXIPHOID
+  );
+},
+
+/* 2: モリソン窩 */
+()=>{
+  setProgress(38);
+  clearNow();setMap('rub','now');
+  div('FAST ② ─ モリソン窩・右側腹部');
+  sb('sonobo_5.png',
+    `次は<strong>モリソン窩（右側腹部）</strong>だ。<br>
+     剣状突起の高さ、中腋窩線あたりに肋間に沿ってプローブを当てる。<br>
+     <strong>肝臓と右腎臓の間</strong>に液体がないか探せ。<br>
+     さらに、プローブを頭側に向けて<strong>右胸腔（右胸水）</strong>も確認することを忘れるな。`);
+  askDep('モリソン窩ビュー',
+    ()=>{
+      sndPing();
+      fnd('neg','📋','モリソン窩・右側腹部 ─ 所見',
+        `<strong>モリソン窩：液体貯留なし</strong><br>
+         肝臓と右腎臓の間にエコーフリースペースを認めない。<br>
+         <strong>右胸腔：胸水なし</strong><br>
+         横隔膜の頭側にエコーフリースペースを認めない。<br>
+         ➜ <span class="neg-txt">この部位での出血・胸水は否定的。</span>`);
+      setMap('rub','neg');
+      nxt('次：脾周囲を確認する',()=>run(3));
+    },
+    CL_MORRISON
+  );
+},
+
+/* 3: 脾周囲 */
+()=>{
+  setProgress(56);
+  clearNow();setMap('lub','now');
+  div('FAST ③ ─ 脾周囲・左側腹部');
+  sndAlert();
+  alrt('warn','⚡','左側腹部打撲の症例！ → 脾損傷を最優先に疑う。念入りに確認する');
+  sb('sonobo_8.png',
+    `<strong>脾周囲（左側腹部）</strong>だ。<br>
+     <span class="red">今回の症例は左側腹部打撲。脾損傷の可能性が高い。</span><br>
+     液体貯留が無いか<strong>念入りに</strong>探せ。<br>
+     さらに、プローブを頭側に向けて<strong>左胸腔（左胸水）</strong>も必ず確認しろ。`);
+  askDep('脾周囲ビュー',
+    ()=>{
+      sndPing();
+      setTimeout(()=>sndAlert(),400);
+      fnd('pos','🔴','脾周囲・左側腹部 ─ 所見',
+        `<strong>脾周囲：明らかな液体貯留あり</strong><br>
+         脾周囲に<strong>エコーフリーの暗い領域</strong>を認める。<br>
+         <strong>左胸腔：胸水なし</strong><br>
+         横隔膜の頭側にエコーフリースペースを認めない。<br>
+         ➜ <span class="pos-txt">脾損傷による腹腔内出血を強く疑う。<br>この時点でFAST陽性！</span>`);
+      setMap('lub','pos');
+      alrt('danger','🚨','FAST陽性確認！ — 引き続き膀胱直腸窩を確認する');
+      nxt('次：膀胱直腸窩を確認する',()=>run(4));
+    },
+    CL_SPLENORENAL
+  );
+},
+
+/* 4: 膀胱直腸窩 */
+()=>{
+  setProgress(73);
+  clearNow();setMap('pel','now');
+  div('FAST ④ ─ 膀胱直腸窩');
+  sb('sonobo_7.png',
+    `最後は<strong>膀胱直腸窩</strong>だ。<br>
+     ※このステップでは所見を自動で確認します。`);
+  nxt('🔵 膀胱直腸窩を確認する',()=>{
+    sndPing();
+    setTimeout(()=>sndAlert(),300);
+    fnd('pos','🔴','膀胱直腸窩─ 所見',
+      `<strong>膀胱直腸窩：少量の液体貯留あり</strong><br>
+       膀胱の後方〜直腸の周囲に、少量のエコーフリーな液体を認める。<br>
+       ➜ <span class="pos-txt">膀胱直腸窩にも出血が流れ込んでいる。</span><br>
+       脾周囲と合わせて<strong>FAST陽性（2箇所）が確定</strong>した。`);
+    setMap('pel','pos');
+    alrt('danger','🚨','FAST完了 ─ 2箇所陽性：腹腔内出血の診断');
+    nxt('FASTの結果をまとめる',()=>run(5));
+  });
+},
+
+/* 5: 総括・判断 */
+()=>{
+  setProgress(88);
+  clearNow();
+  div('FAST 完了 ─ 総合評価と次の判断');
+  sb('sonobo_8.png',
+    `キャプテン、<strong>FASTの結果を整理する。</strong><br><br>
+     ・心窩部　　：<span class="neg-txt">陰性（液体なし）</span><br>
+     ・モリソン窩：<span class="neg-txt">陰性（液体なし）</span><br>
+     ・脾周囲　　：<span class="pos-txt">陽性 ← 脾周囲に液体貯留あり</span><br>
+     ・膀胱直腸窩：<span class="pos-txt">陽性 ← 膀胱直腸窩に液体あり</span><br><br>
+     バイタルは依然として<span class="red">BP 90/60、HR 118</span>。<br>
+     <strong>今すぐ何をする？</strong>`);
+
+  cho('▶ FAST陽性・バイタル不安定 → 次のアクションは？',[
+    {icon:'📞',label:'外科コール（手術/IVR）',sub:'緊急外科的介入を要請する',res:'ok'},
+    {icon:'🖥',label:'造影CTを実施する',sub:'出血源の詳細評価を先に行う',res:'ng'},
+    {icon:'👁',label:'経過観察する',sub:'バイタル推移をしばらく見る',res:'ng'},
+    {icon:'💊',label:'鎮痛薬を投与して様子見',sub:'痛みを和らげながら経過観察',res:'ng'},
+  ],o=>{
+    if(o.res==='ok'){
+      sndOk();
+      fnd('neg','✅','正解：外科コールが最優先',
+        `バイタル不安定＋FAST陽性 → <strong>即外科コール</strong>。<br>
+         CTはバイタルが安定している場合か、外科医の判断を待ってから。<br>
+         この症例では緊急手術またはIVRの適応を外科医が判断する。`);
+    }else if(o.label.includes('CT')){
+      sndNg();
+      fnd('pos','⚠️','CTは後回し',
+        `バイタル不安定例のCT搬送は<strong>急変リスクが高い</strong>。<br>
+         FASTで出血が確認された以上、まず外科コール。<br>
+         CT適応は外科医と判断してから。`);
+    }else if(o.label.includes('経過')){
+      sndNg();
+      fnd('pos','⚠️','経過観察は危険',
+        `FAST陽性＋バイタル不安定は<strong>外科的緊急症</strong>だ。<br>
+         「様子を見る」時間的猶予はない。今すぐ外科を呼べ。`);
+    }else{
+      sndNg();
+      fnd('pos','⚠️','鎮痛だけでは止まらない',
+        `鎮痛は苦痛軽減に必要だが<strong>根本治療にならない</strong>。<br>
+         腹腔内出血を止めるには外科的介入が必要。まず外科コールを。`);
+    }
+    nxt('🏁 ミッション完了 — 結果を見る',()=>run(6));
+  });
+},
+
+/* 6: RESULT */
+()=>{
+  setProgress(100);
+  stopHb();
+  document.getElementById('monitorCard').style.display='none';
+  document.getElementById('fastMap').style.display='none';
+  stream.style.display='none';
+
+  // Phase 2 を非表示・リセット
+  document.getElementById('resultPhase2').style.display='none';
+
+  const rw=document.getElementById('resultWrap');
+  const ratio=total>0?correct/total:0;
+
+  // お疲れ様カードのバリエーション
+  const oCard=document.getElementById('otsukareCard');
+  const oEmoji=document.getElementById('otsukareEmoji');
+  const oTitle=document.getElementById('otsukareTitle');
+  const oMsg=document.getElementById('otsukareMsg');
+
+  // 称号・メッセージ設定
+  let titleEn='',titleJp='',medals='',scoreClass='';
+  const isPerfect=(total>0 && correct===total);
+  if(isPerfect){
+    sndReward();
+    setTimeout(sndReward,500);
+    setTimeout(sndReward,1000);
+    spawnConfetti();
+    setTimeout(spawnConfetti,800);
+    setTimeout(spawnConfetti,1600);
+    document.getElementById('resSonobo').src='assets/sonobo_6.png';
+    document.getElementById('resTitle').textContent='完璧な判断でした！🏆';
+    document.getElementById('resTitle').style.animation='nameGlow 2s ease-in-out infinite';
+    document.getElementById('resSub').textContent='キャプテン、全問正解だ。銀河内で栄誉ある称号を授与する！';
+    titleEn='Galactic Rescue Cadet';
+    titleJp='銀河の見習い救命医';
+    medals='🏆⭐🚀🌟';
+    scoreClass='gold';
+    document.getElementById('titleCard').style.display='block';
+    document.getElementById('titleCard').style.animation='starBurst .7s ease both';
+    document.getElementById('badgeEntrySection').style.display='block';
+    oEmoji.textContent='🏆';
+    oTitle.textContent='ミッション完遂、お疲れ様！';
+    oMsg.innerHTML='全問正解の完璧なパフォーマンス。<br>この銀河での長旅を、最高の形で締めくくったキャプテンを称えよう。<br><span style="color:var(--gold);font-weight:700">あなたの判断力が、今日も命を救った。</span>';
+  }else if(ratio>=0.4){
+    sndOk();
+    spawnConfetti();
+    document.getElementById('resSonobo').src='assets/sonobo_3.png';
+    document.getElementById('resTitle').textContent='よくできました ✅';
+    document.getElementById('resSub').textContent='基本の流れは正しい。全問正解を目指してもう一度チャレンジしよう！';
+    titleEn='Rescue Cadet';
+    titleJp='見習い救命医';
+    medals='🏅⭐';
+    scoreClass='silver';
+    document.getElementById('titleCard').style.display='block';
+    document.getElementById('badgeEntrySection').style.display='none';
+    oEmoji.textContent='⭐';
+    oTitle.textContent='よく頑張った、お疲れ様！';
+    oMsg.innerHTML='ここまで走り続けたことに拍手を送ろう。<br>まだ伸びしろがある——それが次への燃料だ、キャプテン。';
+  }else{
+    document.getElementById('resSonobo').src='assets/sonobo_4.png';
+    document.getElementById('resTitle').textContent='振り返ろう 💡';
+    document.getElementById('resSub').textContent='バイタルとFAST所見を組み合わせて判断する感覚を養おう。何度でも挑戦してくれ、キャプテン！';
+    titleEn='';titleJp='';medals='';scoreClass='';
+    document.getElementById('badgeEntrySection').style.display='none';
+    oEmoji.textContent='🌱';
+    oTitle.textContent='挑戦した自分を褒めよう';
+    oMsg.innerHTML='うまくいかない日も、それが力に変わる。<br>ここで終わりじゃない——再挑戦がキャプテンの証だ。';
+  }
+
+  // お疲れ様カード表示
+  oCard.style.display='block';
+  oCard.style.animation='otsukareFadeIn .8s cubic-bezier(.34,1.3,.64,1) both, glowPulse 4s ease-in-out 1s infinite';
+
+  // 称号カード内容を更新
+  if(titleEn){
+    document.getElementById('titleName').textContent=titleEn;
+    document.getElementById('titleJp').textContent=titleJp;
+    document.querySelector('.medal-row').textContent=medals;
+    window._currentTitle={en:titleEn,jp:titleJp,medals,scoreClass};
+  }
+
+  document.getElementById('scScore').textContent=`${correct} / ${total} 正解`;
+
+  // 一番上へスクロール → 表示 → 再スクロール
+  sc.scrollTop = 0;
+  rw.classList.add('show');
+  requestAnimationFrame(()=>{
+    sc.scrollTop = 0;
+  });
+}
+
+];
+
+function run(n){stepN=n;STEPS[n]&&STEPS[n]();}
+
+// ══ PHASE 2 REVEAL ══════════════════════════════════════════════
+function scrollToPhase2(){
+  sndClick();
+  const p2=document.getElementById('resultPhase2');
+  p2.style.display='block';
+  p2.style.animation='phase2Drop .5s ease both';
+  setTimeout(()=>{
+    p2.scrollIntoView({behavior:'smooth',block:'start'});
+  },80);
+}
+function generateBadge(){
+  const nameInput=document.getElementById('captainNameInput');
+  const name=(nameInput.value.trim()||'キャプテン');
+  const t=window._currentTitle||{en:'Galactic Rescue Cadet',jp:'銀河の見習い救命医',medals:'🏆⭐🚀🌟',scoreClass:'gold'};
+  const isGold=t.scoreClass==='gold';
+  const now=new Date();
+  const dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+  const bd=document.getElementById('badgeDisplay');
+  bd.style.display='block';
+  bd.innerHTML=`
+    <div style="
+      background:linear-gradient(135deg,
+        ${isGold?'rgba(245,200,66,.15)':'rgba(180,180,220,.1)'},
+        ${isGold?'rgba(168,85,247,.12)':'rgba(100,120,200,.12)'},
+        rgba(21,101,216,.1));
+      border:2px solid ${isGold?'rgba(245,200,66,.55)':'rgba(150,160,220,.4)'};
+      border-radius:20px;padding:24px 18px 20px;text-align:center;
+      box-shadow:0 0 50px ${isGold?'rgba(245,200,66,.15)':'rgba(100,120,220,.1)'};
+      animation:badgeReveal .7s cubic-bezier(.34,1.56,.64,1) both;
+      position:relative;overflow:hidden;">
+
+      <!-- コーナー装飾 -->
+      <div style="position:absolute;top:8px;left:10px;font-size:14px;opacity:.4;">✦</div>
+      <div style="position:absolute;top:8px;right:10px;font-size:14px;opacity:.4;">✦</div>
+      <div style="position:absolute;bottom:8px;left:10px;font-size:14px;opacity:.4;">✦</div>
+      <div style="position:absolute;bottom:8px;right:10px;font-size:14px;opacity:.4;">✦</div>
+
+      <!-- ヘッダー -->
+      <div style="font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;
+        color:${isGold?'rgba(245,200,66,.6)':'rgba(180,190,255,.5)'};margin-bottom:14px;">
+        FASTALIS GALAXY — OFFICIAL ID CARD
+      </div>
+
+      <!-- アイコン -->
+      <div style="font-size:46px;margin-bottom:6px;
+        filter:drop-shadow(0 0 12px ${isGold?'rgba(245,200,66,.6)':'rgba(150,170,255,.5)'});
+        animation:float 2.5s ease-in-out infinite;">${isGold?'⭐':'🌟'}</div>
+
+      <!-- 称号 -->
+      <div style="font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;
+        color:${isGold?'rgba(245,200,66,.6)':'rgba(180,190,255,.55)'};margin-bottom:4px;">
+        AWARDED TITLE
+      </div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;
+        color:${isGold?'#f5c842':'#aabcff'};letter-spacing:2px;margin-bottom:3px;
+        animation:nameGlow 3s ease-in-out infinite;">
+        ${t.en}
+      </div>
+      <div style="font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;font-weight:700;
+        color:rgba(255,255,255,.6);margin-bottom:14px;">${t.jp}</div>
+
+      <!-- 区切り線 -->
+      <div style="border-top:1px solid ${isGold?'rgba(245,200,66,.2)':'rgba(150,160,220,.2)'};
+        margin-bottom:14px;"></div>
+
+      <!-- 名前 -->
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;
+        color:${isGold?'rgba(245,200,66,.5)':'rgba(180,190,255,.45)'};margin-bottom:6px;">
+        CAPTAIN NAME
+      </div>
+      <div style="font-family:'Zen Kaku Gothic New',sans-serif;font-size:22px;font-weight:900;
+        color:white;margin-bottom:12px;
+        text-shadow:0 0 20px ${isGold?'rgba(245,200,66,.3)':'rgba(150,170,255,.3)'};">
+        ${name}
+      </div>
+
+      <!-- フッター -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        border-top:1px solid ${isGold?'rgba(245,200,66,.15)':'rgba(150,160,220,.15)'};
+        padding-top:10px;margin-top:2px;">
+        <div style="text-align:left;">
+          <div style="font-size:8px;letter-spacing:1px;
+            color:rgba(255,255,255,.35);font-family:'Orbitron',sans-serif;">MISSION</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);">
+            STAR FASTALIS — FAST</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:8px;letter-spacing:1px;
+            color:rgba(255,255,255,.35);font-family:'Orbitron',sans-serif;">DATE</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);">${dateStr}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;
+      margin-top:8px;line-height:1.7;">
+      🎉 ${name} キャプテン、FASTARISを制覇した証だ。<br>
+      この名札を胸に、次のミッションへ進もう！
+    </div>`;
+
+  // サウンド
+  sndReward();
+  // スクロール
+  scrollBot();
+}
+
+// ══ CONFETTI ══════════════════════════════════════════════════
+function spawnConfetti(){
+  const colors=['#f5c842','#a855f7','#3d8ef0','#22c55e','#f97316','#fff','#ff6b9d','#00d4ff'];
+  for(let i=0;i<55;i++){
+    const el=document.createElement('div');
+    const color=colors[Math.floor(Math.random()*colors.length)];
+    const size=Math.random()*10+4;
+    const left=Math.random()*100;
+    const delay=Math.random()*2;
+    const dur=Math.random()*2+1.8;
+    const isCircle=Math.random()>0.4;
+    el.style.cssText=`
+      position:fixed;top:-20px;left:${left}%;
+      width:${size}px;height:${size}px;
+      background:${color};border-radius:${isCircle?'50%':'2px'};
+      z-index:9999;pointer-events:none;
+      box-shadow:0 0 6px ${color}80;
+      animation:confettiFall ${dur}s ${delay}s ease-out forwards;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),(dur+delay)*1000+100);
+  }
+}
+
+function resetSim(){
+  stepN=0;correct=0;total=0;
+  Object.keys(mapSt).forEach(k=>mapSt[k]='');
+  ['sub','rub','lub','pel'].forEach(v=>{
+    document.getElementById('fm-'+v).classList.remove('now','neg','pos');
+    const re=document.getElementById('fr-'+v);re.className='fm-res';re.textContent='';
+  });
+  stream.innerHTML='';stream.style.display='';
+  document.getElementById('monitorCard').style.display='';
+  document.getElementById('fastMap').style.display='none';
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('titleCard').style.display='none';
+  document.getElementById('badgeEntrySection').style.display='none';
+  document.getElementById('badgeDisplay').style.display='none';
+  document.getElementById('captainNameInput').value='';
+  document.getElementById('otsukareCard').style.display='none';
+  document.getElementById('resultPhase2').style.display='none';
+  window._currentTitle=null;
+  setProgress(0);
+  startHb(118);
+  setTimeout(()=>run(0),400);
+}
+
+// ══ INIT ══════════════════════════════════════════════════════
+startHb(118);
+setTimeout(()=>run(0),600);
+</script>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FAST Journey – クイックチェック</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue-deep:#0a1628;--blue-vivid:#1565d8;
+  --blue-bright:#3d8ef0;--blue-light:#7bb8f8;
+  --white:#fff;--gold:#f5c842;--green:#22c55e;--teal:#14b8a6;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;min-height:100vh;font-family:'Noto Sans JP',sans-serif;
+  background:var(--blue-deep);color:var(--white);overflow-x:hidden;}
+
+/* はみ出し防止 */
+p,h1,h2,h3,h4,h5,span,li,a,label,button,td,th{
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+.row{display:flex;min-width:0;overflow:hidden;}
+
+/* 背景 */
+.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(160deg,#020a18 0%,#071430 45%,#060f28 100%);}
+.bg-canvas::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%,rgba(21,101,216,.22) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 30% at 90% 80%,rgba(20,184,166,.07) 0%,transparent 50%),
+    radial-gradient(ellipse 35% 25% at 5% 50%,rgba(168,85,247,.06) 0%,transparent 50%);}
+.star{position:absolute;border-radius:50%;background:white;opacity:0;
+  animation:twinkle var(--dur,3s) var(--delay,0s) infinite ease-in-out;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:var(--op,.7);transform:scale(1)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ラッパー */
+.app-wrapper{position:relative;z-index:1;max-width:430px;margin:0 auto;
+  min-height:100vh;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+
+/* ヘッダー */
+.qc-header{background:rgba(2,8,20,.94);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(61,142,240,.18);
+  padding:12px 16px 10px;position:sticky;top:0;z-index:50;}
+.header-top{display:flex;align-items:center;justify-content:space-between;
+  min-width:0;overflow:hidden;}
+.back-btn{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--blue-light);
+  font-weight:700;cursor:pointer;flex-shrink:0;padding:5px 10px 5px 7px;border-radius:20px;
+  border:1px solid rgba(61,142,240,.25);background:rgba(61,142,240,.07);transition:background .15s;}
+.back-btn:active{background:rgba(61,142,240,.22);}
+.app-logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;
+  color:var(--white);letter-spacing:2px;text-shadow:0 0 18px rgba(61,142,240,.5);flex-shrink:0;}
+.app-logo span{color:var(--blue-bright);}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);animation:blink 2s infinite;flex-shrink:0;}
+.header-sub{margin-top:8px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+.page-tag{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  color:var(--teal);letter-spacing:2px;flex-shrink:0;}
+.page-title{font-size:15px;font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;
+  word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* スクロール */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:32px;}
+
+/* ===== セクション区切り ===== */
+.sec-divider{margin:20px 14px 0;display:flex;align-items:center;gap:8px;
+  min-width:0;overflow:hidden;}
+.sec-divider-text{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:2px;color:rgba(255,255,255,.28);flex-shrink:0;white-space:nowrap;}
+.sec-divider-line{flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,.14),transparent);}
+
+/* ===== カード共通 ===== */
+.card{margin:10px 14px 0;border-radius:var(--radius);overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);animation:fadeUp .4s ease both;}
+
+/* カードヘッダー */
+.card-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  min-width:0;overflow:hidden;}
+.card-hdr-common{background:rgba(61,142,240,.14);border-bottom:1px solid rgba(61,142,240,.2);}
+.card-hdr-ep    {background:rgba(21,101,216,.22);border-bottom:1px solid rgba(61,142,240,.28);}
+.card-hdr-mo    {background:rgba(20,184,166,.14);border-bottom:1px solid rgba(20,184,166,.26);}
+.card-hdr-sp    {background:rgba(168,85,247,.14);border-bottom:1px solid rgba(168,85,247,.26);}
+.card-icon{font-size:17px;flex-shrink:0;line-height:1;}
+.card-title{font-size:14px;font-weight:900;font-family:'Zen Kaku Gothic New',sans-serif;
+  flex:1;min-width:0;word-break:break-all;overflow-wrap:break-word;}
+.col-common{color:var(--blue-light);}
+.col-ep{color:#a8c8ff;}
+.col-mo{color:var(--teal);}
+.col-sp{color:#d8b4fe;}
+
+/* ===== 評価チェックリスト表 ===== */
+.eval-intro{padding:10px 14px 8px;background:rgba(255,255,255,.015);
+  border-bottom:1px solid rgba(255,255,255,.05);}
+.eval-intro-text{font-size:11px;color:var(--teal);font-weight:700;
+  word-break:break-all;overflow-wrap:break-word;}
+
+.eval-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.eval-table thead th{padding:9px 6px;font-size:11px;font-weight:900;text-align:center;
+  word-break:break-all;overflow-wrap:break-word;line-height:1.4;}
+.th-ep{background:rgba(21,101,216,.28);color:#a8c8ff;}
+.th-mo{background:rgba(20,184,166,.2);color:var(--teal);}
+.th-sp{background:rgba(168,85,247,.2);color:#d8b4fe;}
+
+.eval-table tbody td{
+  padding:9px 7px;font-size:11px;line-height:1.5;text-align:center;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  word-break:break-all;overflow-wrap:break-word;
+  vertical-align:middle;color:rgba(255,255,255,.78);}
+.eval-table tbody tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.eval-table tbody tr:last-child td{border-bottom:none;}
+
+/* ===== 手順セクション内ブロック ===== */
+/* 手順リスト */
+.proc-block{padding:11px 14px;background:rgba(255,255,255,.015);
+  border-bottom:1px solid rgba(255,255,255,.05);}
+.block-label{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:2px;color:rgba(255,255,255,.25);margin-bottom:8px;}
+.proc-list{display:flex;flex-direction:column;gap:7px;}
+.proc-item{display:flex;align-items:flex-start;gap:9px;
+  min-width:0;overflow:hidden;}
+.proc-num{width:19px;height:19px;border-radius:50%;font-size:9px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;line-height:1;}
+.num-common{background:rgba(61,142,240,.22);color:var(--blue-light);}
+.num-ep{background:rgba(61,142,240,.25);color:#a8c8ff;}
+.num-mo{background:rgba(20,184,166,.22);color:var(--teal);}
+.num-sp{background:rgba(168,85,247,.22);color:#d8b4fe;}
+.proc-text{font-size:12px;color:rgba(255,255,255,.72);line-height:1.55;
+  flex:1;min-width:0;overflow:hidden;word-break:break-all;overflow-wrap:break-word;}
+.proc-text strong{color:rgba(255,255,255,.92);}
+
+/* 画像ブロック */
+.img-block{padding:10px 14px;background:rgba(0,0,0,.18);
+  border-bottom:1px solid rgba(255,255,255,.05);}
+.img-row{display:flex;gap:8px;min-width:0;overflow:hidden;}
+.img-wrap{flex:1;min-width:0;overflow:hidden;}
+.img-label{font-size:9px;color:rgba(255,255,255,.35);margin-bottom:5px;
+  font-weight:700;letter-spacing:.5px;
+  word-break:break-all;overflow-wrap:break-word;}
+.echo-img{width:100%;border-radius:8px;display:block;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);}
+
+/* 単独画像（フル幅） */
+.img-block-single{padding:10px 14px;background:rgba(0,0,0,.18);
+  border-bottom:1px solid rgba(255,255,255,.05);}
+.echo-img-full{width:100%;border-radius:8px;display:block;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);}
+
+/* Tipsブロック */
+.tips-block{padding:10px 14px;
+  background:rgba(245,200,66,.04);
+  border-top:1px solid rgba(245,200,66,.1);}
+.tips-label{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:2px;color:rgba(245,200,66,.65);margin-bottom:7px;}
+.tips-list{display:flex;flex-direction:column;gap:5px;}
+.tip-item{display:flex;align-items:flex-start;gap:7px;min-width:0;overflow:hidden;}
+.tip-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);
+  opacity:.5;flex-shrink:0;margin-top:6px;}
+.tip-text{font-size:11px;color:rgba(255,210,70,.68);line-height:1.5;
+  flex:1;min-width:0;overflow:hidden;word-break:break-all;overflow-wrap:break-word;}
+</style>
+</head>
+<body>
+
+<div class="bg-canvas" id="bgCanvas"></div>
+
+<div class="app-wrapper">
+
+  <!-- ヘッダー -->
+  <header class="qc-header">
+    <div class="header-top">
+      <button class="back-btn" onclick="location.href='home.html'">← マップへ</button>
+    </div>
+    <div class="header-sub">
+      <span class="page-tag">QUICK CHECK</span>
+      <span class="page-title">2周目以降の方へ</span>
+    </div>
+  </header>
+
+  <div class="scroll-content">
+
+    <!-- ===============================================
+         PART 1: 評価チェックリスト（各部位でこれが見えたらOK）
+         =============================================== -->
+    <div class="sec-divider" style="margin-top:14px;">
+      <span class="sec-divider-text">PART 1 — 評価チェックリスト</span>
+      <div class="sec-divider-line"></div>
+    </div>
+
+    <div class="card" style="animation-delay:.05s">
+      <div class="card-hdr card-hdr-ep" style="background:rgba(10,22,40,.6);border-bottom:1px solid rgba(61,142,240,.2);">
+        <span class="card-icon">📋</span>
+        <span class="card-title" style="color:rgba(255,255,255,.85);font-size:13px;">各部位でこれが見えたらOK！</span>
+      </div>
+      <div class="eval-intro">
+        <div class="eval-intro-text">描出できたか、見ながら確認しよう</div>
+      </div>
+      <table class="eval-table">
+        <thead>
+          <tr>
+            <th class="th-ep">🫀 心窩部</th>
+            <th class="th-mo">🟦 モリソン窩<br>＋右胸部</th>
+            <th class="th-sp">🟪 脾周囲<br>＋左胸部</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>肝臓が画面上部に描出</td>
+            <td>肝腎境界が明瞭</td>
+            <td>脾腎境界が確認できる</td>
+          </tr>
+          <tr>
+            <td>心膜腔が確認できる</td>
+            <td>モリソン窩に液体なし</td>
+            <td>脾周囲に液体なし</td>
+          </tr>
+          <tr>
+            <td>心膜液がない</td>
+            <td>扇動走査を実施した</td>
+            <td>扇動走査を実施した</td>
+          </tr>
+          <tr>
+            <td>扇動操作を実施した</td>
+            <td>カーテンサイン確認</td>
+            <td>カーテンサイン確認</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===============================================
+         PART 2: 共通チェック
+         =============================================== -->
+    <div class="sec-divider">
+      <span class="sec-divider-text">PART 2 — 手順チェック</span>
+      <div class="sec-divider-line"></div>
+    </div>
+
+    <div class="card" style="animation-delay:.08s">
+      <div class="card-hdr card-hdr-common">
+        <span class="card-icon">⚙️</span>
+        <span class="card-title col-common">共通チェック</span>
+      </div>
+      <div class="proc-block">
+        <div class="proc-list">
+          <div class="proc-item">
+            <div class="proc-num num-common">1</div>
+            <div class="proc-text">プリセットは正しいか</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-common">2</div>
+            <div class="proc-text"><strong>コンベックスプローブ</strong>を選択できているか</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-common">3</div>
+            <div class="proc-text"><strong>マーカーの向き</strong>は正しいか</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-common">4</div>
+            <div class="proc-text">ゼリーの量は十分か</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-common">5</div>
+            <div class="proc-text">ポジショニングは適切か</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-common">6</div>
+            <div class="proc-text">患者さんへの声かけをした</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===============================================
+         心窩部
+         =============================================== -->
+    <div class="card" style="animation-delay:.11s">
+      <div class="card-hdr card-hdr-ep">
+        <span class="card-icon">🫀</span>
+        <span class="card-title col-ep">心窩部</span>
+      </div>
+
+      <!-- 手順 -->
+      <div class="proc-block">
+        <div class="block-label">PROCEDURE</div>
+        <div class="proc-list">
+          <div class="proc-item">
+            <div class="proc-num num-ep">1</div>
+            <div class="proc-text">プローブは<strong>上から</strong>持つ</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-ep">2</div>
+            <div class="proc-text"><strong>肋骨弓にはめ込む</strong>ように当てる</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-ep">3</div>
+            <div class="proc-text">患者さんに<strong>息を吸ってもらう</strong>ことで心臓を画面中央へ誘導する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-ep">4</div>
+            <div class="proc-text"><strong>扇動操作</strong>で心臓を広く観察する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-ep">5</div>
+            <div class="proc-text"><strong>心膜液貯留</strong>の有無を確認する</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画像2枚並び -->
+      <div class="img-block">
+        <div class="img-row">
+          <div class="img-wrap">
+            <div class="img-label">プローブの持ち方</div>
+            <img class="echo-img" src="images/img_01.jpeg" alt="心窩部 プローブの持ち方">
+          </div>
+          <div class="img-wrap">
+            <div class="img-label">正常エコー像</div>
+            <img class="echo-img" src="images/img_03.jpeg" alt="心窩部 エコー画像">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="tips-block">
+        <div class="tips-label">💡 TIPS — うまくいかないとき</div>
+        <div class="tips-list">
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">最初はきちんと寝かせた状態で施行する</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">吸気時にプローブの位置をズラさない → しっかり押し込んでおくイメージ</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">心臓は左に寄っているとはいえ、ほぼ正中にある</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===============================================
+         モリソン窩・右側胸部
+         =============================================== -->
+    <div class="card" style="animation-delay:.14s">
+      <div class="card-hdr card-hdr-mo">
+        <span class="card-icon">🟦</span>
+        <span class="card-title col-mo">モリソン窩・右側胸部</span>
+      </div>
+
+      <!-- 手順 -->
+      <div class="proc-block">
+        <div class="block-label">PROCEDURE</div>
+        <div class="proc-list">
+          <div class="proc-item">
+            <div class="proc-num num-mo">1</div>
+            <div class="proc-text"><strong>右中腋窩線上・剣状突起の高さ</strong>の肋間に当てる</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-mo">2</div>
+            <div class="proc-text">肋骨の走行に注意してプローブを当てる</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-mo">3</div>
+            <div class="proc-text"><strong>扇動操作</strong>で広く観察する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-mo">4</div>
+            <div class="proc-text"><strong>モリソン窩</strong>に腹水貯留がないか確認する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-mo">5</div>
+            <div class="proc-text"><strong>1肋間上げて</strong>呼吸を指示 → <strong>カーテンサイン</strong>を確認する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-mo">6</div>
+            <div class="proc-text">右側胸部における<strong>胸水貯留</strong>の有無を確認する</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画像2枚並び -->
+      <div class="img-block">
+        <div class="img-row">
+          <div class="img-wrap">
+            <div class="img-label">プローブの持ち方</div>
+            <img class="echo-img" src="images/img_04.jpeg" alt="モリソン窩 プローブの持ち方">
+          </div>
+          <div class="img-wrap">
+            <div class="img-label">正常エコー像</div>
+            <img class="echo-img" src="images/img_05.jpeg" alt="モリソン窩 エコー画像">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="tips-block">
+        <div class="tips-label">💡 TIPS — うまくいかないとき</div>
+        <div class="tips-list">
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">小指・薬指を患者さんの体につけてプローブを安定させる</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">実際に肋間を触って位置を確認する</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">1肋間上げたり下げたりして探す</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">プローブが腹側に寄り過ぎていない？ 腎臓は背側にある</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">超音波ビームが背中の方へ向くようにプローブを当てる</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">腕を上げてもらう、または息を吸って止めてもらう</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===============================================
+         脾周囲・左側胸部
+         =============================================== -->
+    <div class="card" style="animation-delay:.17s">
+      <div class="card-hdr card-hdr-sp">
+        <span class="card-icon">🟪</span>
+        <span class="card-title col-sp">脾周囲・左側胸部</span>
+      </div>
+
+      <!-- 手順 -->
+      <div class="proc-block">
+        <div class="block-label">PROCEDURE</div>
+        <div class="proc-list">
+          <div class="proc-item">
+            <div class="proc-num num-sp">1</div>
+            <div class="proc-text"><strong>左後腋窩線上・剣状突起の高さ</strong>の肋間に当てる</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-sp">2</div>
+            <div class="proc-text">肋骨の走行に注意する（モリソン窩より<strong>プローブを縦に近づける</strong>）</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-sp">3</div>
+            <div class="proc-text"><strong>扇動操作</strong>で広く観察する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-sp">4</div>
+            <div class="proc-text"><strong>脾周囲</strong>に腹水貯留がないか確認する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-sp">5</div>
+            <div class="proc-text"><strong>1肋間上げて</strong>呼吸を指示 → <strong>カーテンサイン</strong>を確認する</div>
+          </div>
+          <div class="proc-item">
+            <div class="proc-num num-sp">6</div>
+            <div class="proc-text">左側胸部における<strong>胸水貯留</strong>の有無を確認する</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画像2枚並び -->
+      <div class="img-block">
+        <div class="img-row">
+          <div class="img-wrap">
+            <div class="img-label">プローブの持ち方</div>
+            <img class="echo-img" src="images/img_06.jpeg" alt="脾周囲 プローブの持ち方">
+          </div>
+          <div class="img-wrap">
+            <div class="img-label">正常エコー像</div>
+            <img class="echo-img" src="images/img_09.jpg" alt="脾周囲 エコー画像">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="tips-block">
+        <div class="tips-label">💡 TIPS — うまくいかないとき</div>
+        <div class="tips-list">
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">小指・薬指を患者さんの体につけてプローブを安定させる</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">モリソン窩の時よりも背側の肋間に当てる</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">実際に肋間を触って位置を確認する</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">1肋間上げたり下げたりして探す</div></div>
+          <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">腕を上げてもらう、息を吸って止めてもらう</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px;"></div>
+
+  </div><!-- /scroll-content -->
+</div><!-- /app-wrapper -->
+
+<script>
+(function(){
+  const bg=document.getElementById('bgCanvas');
+  for(let i=0;i<55;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2+.3;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${Math.random()*3+2}s;--delay:${Math.random()*5}s;--op:${Math.random()*.55+.1};`;
+    bg.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

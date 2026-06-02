@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FAST Journey – ギャラクシーマップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue-deep:#0a1628;--blue-mid:#1a3a6e;--blue-vivid:#1565d8;
+  --blue-bright:#3d8ef0;--blue-light:#7bb8f8;
+  --white:#fff;--gold:#f5c842;--green:#22c55e;--red:#ef4444;--purple:#a855f7;
+  --radius:20px;--radius-sm:12px;--radius-lg:28px;
+  --nav-h:72px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;min-height:100vh;font-family:'Noto Sans JP',sans-serif;
+  background:var(--blue-deep);color:var(--white);overflow-x:hidden;}
+
+/* ===== はみ出し防止 ===== */
+p,h1,h2,h3,span,li,a,.text-elem{word-break:break-all;overflow-wrap:break-word;min-width:0;}
+
+/* ===== 背景 ===== */
+.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(160deg,#020a18 0%,#071430 45%,#060f28 100%);}
+.bg-canvas::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%,rgba(21,101,216,.3) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 40% at 85% 75%,rgba(61,142,240,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 40% 30% at 10% 60%,rgba(168,85,247,.08) 0%,transparent 50%);}
+.star{position:absolute;border-radius:50%;background:white;opacity:0;
+  animation:twinkle var(--dur,3s) var(--delay,0s) infinite ease-in-out;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:var(--op,.7);transform:scale(1)}}
+
+/* ===== アニメーション ===== */
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes glowPulse{0%,100%{opacity:.45}50%{opacity:.85}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes orbitCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes orbitCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes pathPulse{0%,100%{opacity:.25}50%{opacity:.65}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes planetPulse{0%,100%{box-shadow:0 0 14px var(--gc,rgba(61,142,240,.3))}50%{box-shadow:0 0 30px var(--gc,rgba(61,142,240,.6))}}
+
+/* ===== ラッパー ===== */
+.app-wrapper{position:relative;z-index:1;max-width:430px;margin:0 auto;
+  min-height:100vh;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+
+/* ===== ヘッダー ===== */
+.map-header{background:rgba(2,8,20,.94);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(61,142,240,.18);
+  padding:12px 18px 10px;position:sticky;top:0;z-index:50;}
+.map-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  min-width:0;overflow:hidden;}
+.app-logo{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;
+  color:var(--white);letter-spacing:2px;text-shadow:0 0 18px rgba(61,142,240,.5);flex-shrink:0;}
+.app-logo span{color:var(--blue-bright);}
+.header-chips{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.mission-chip{font-size:10px;color:var(--gold);font-weight:700;
+  background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.28);
+  padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;flex-shrink:0;}
+.progress-row{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+.prog-label{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px;flex-shrink:0;white-space:nowrap;}
+.prog-bar-bg{flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden;min-width:0;}
+.prog-bar-fill{height:100%;border-radius:10px;width:0%;
+  background:linear-gradient(90deg,var(--blue-bright),var(--blue-light));transition:width 1.2s ease;}
+.prog-pct{font-size:10px;color:var(--blue-light);font-weight:700;flex-shrink:0;min-width:26px;text-align:right;}
+
+/* ===== スクロール ===== */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--nav-h) + 20px);}
+
+/* ===== ソノボバナー ===== */
+.sonobo-banner{margin:14px 16px 0;
+  background:linear-gradient(135deg,rgba(21,101,216,.14),rgba(10,40,110,.2));
+  border:1px solid rgba(61,142,240,.2);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:center;gap:10px;
+  min-width:0;overflow:hidden;}
+.sonobo-mini-img{width:48px;height:48px;flex-shrink:0;object-fit:contain;
+  animation:floatSlow 3.2s ease-in-out infinite;
+  filter:drop-shadow(0 4px 10px rgba(21,101,216,.5));}
+.sonobo-speech{flex:1;min-width:0;overflow:hidden;}
+.sonobo-speech-name{font-size:10px;color:var(--blue-light);font-weight:700;letter-spacing:.5px;margin-bottom:3px;}
+.sonobo-speech-text{font-size:12px;line-height:1.55;color:rgba(255,255,255,.8);
+  transition:opacity .3s ease;word-break:break-all;overflow-wrap:break-word;}
+
+/* ===== クリアバナー ===== */
+.clear-banner{margin:12px 16px 0;
+  background:linear-gradient(135deg,rgba(22,101,52,.25),rgba(20,83,45,.3));
+  border:1px solid rgba(34,197,94,.35);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:center;gap:10px;
+  animation:fadeIn .5s ease;min-width:0;overflow:hidden;}
+.clear-icon{font-size:26px;flex-shrink:0;}
+.clear-body{flex:1;min-width:0;overflow:hidden;}
+.clear-title{font-size:12px;font-weight:900;color:#4ade80;margin-bottom:2px;
+  word-break:break-all;overflow-wrap:break-word;}
+.clear-text{font-size:11px;color:rgba(255,255,255,.6);line-height:1.5;
+  word-break:break-all;overflow-wrap:break-word;}
+
+/* ===== セクションラベル ===== */
+.section-label{margin:18px 16px 4px;font-size:10px;font-weight:700;letter-spacing:3px;
+  color:var(--blue-light);text-transform:uppercase;display:flex;align-items:center;gap:8px;
+  min-width:0;overflow:hidden;}
+.section-label::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(61,142,240,.35),transparent);}
+
+/* ===== INTRO スタートゾーン ===== */
+.start-zone{
+  margin:6px 16px 0;padding:14px 16px;
+  background:linear-gradient(135deg,rgba(21,101,216,.2),rgba(10,50,140,.28));
+  border:1.5px solid rgba(61,142,240,.45);border-radius:var(--radius);
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:transform .18s ease;text-decoration:none;color:inherit;
+  min-width:0;overflow:hidden;
+  box-shadow:0 0 28px rgba(21,101,216,.15),inset 0 1px 0 rgba(255,255,255,.07);}
+.start-zone:active{transform:scale(.98);}
+.start-sonobo-img{width:58px;height:58px;flex-shrink:0;object-fit:contain;
+  animation:float 3.2s ease-in-out infinite;
+  filter:drop-shadow(0 6px 14px rgba(21,101,216,.6));}
+.start-info{flex:1;min-width:0;overflow:hidden;}
+.start-tag{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  color:var(--blue-light);letter-spacing:1.5px;margin-bottom:5px;}
+.start-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:17px;font-weight:900;
+  margin-bottom:3px;word-break:break-all;overflow-wrap:break-word;}
+.start-desc{font-size:11px;color:rgba(255,255,255,.5);line-height:1.5;
+  word-break:break-all;overflow-wrap:break-word;}
+.start-arrow{font-size:24px;color:var(--blue-bright);flex-shrink:0;}
+
+/* ===================================================
+   銀河マップ：蛇行レイアウト
+   ================================================= */
+.galaxy-map-wrap{margin:16px 0 0;padding:0 12px;position:relative;min-width:0;overflow:hidden;}
+
+/* 背景SVG（航路ライン） */
+.route-svg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;overflow:visible;}
+
+/* ジグザグ配置コンテナ */
+.zigzag-track{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  gap:0;
+  padding:8px 0 16px;}
+
+/* 各ステップ行 */
+.step-row{
+  display:flex;align-items:center;
+  min-width:0;overflow:visible;
+  height:148px;}
+.step-row.to-right{justify-content:flex-start;padding-left:16px;}
+.step-row.to-left {justify-content:flex-end; padding-right:16px;}
+.step-row.to-center{justify-content:center;}
+
+/* ===== 惑星カード（丸型） ===== */
+.planet-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  width:116px;cursor:pointer;
+  text-decoration:none;color:inherit;
+  transition:transform .2s ease;
+  animation:fadeIn .7s ease both;}
+.planet-card:active{transform:scale(.93);}
+
+/* 惑星本体 */
+.planet-body{
+  position:relative;
+  width:78px;height:78px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg,rgba(10,22,40,.8));
+  border:2px solid var(--border-c,rgba(61,142,240,.35));
+  --gc:var(--glow-c,rgba(61,142,240,.4));
+  animation:planetPulse 4s ease-in-out infinite;}
+
+/* リング */
+.p-ring-outer{
+  position:absolute;inset:-7px;border-radius:50%;
+  border:1.5px solid var(--ring-c,rgba(61,142,240,.25));
+  animation:orbitCW var(--ring-dur,9s) linear infinite;}
+.p-ring-inner{
+  position:absolute;inset:-3px;border-radius:50%;
+  border:1px dashed var(--ring-c2,rgba(61,142,240,.14));}
+
+/* グロー */
+.p-glow{
+  position:absolute;inset:-14px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow-c,rgba(61,142,240,.25)) 0%,transparent 68%);
+  animation:glowPulse 3.5s ease-in-out infinite;}
+
+/* ソノボ画像 */
+.p-sonobo{
+  width:56px;height:56px;object-fit:contain;
+  position:relative;z-index:2;
+  animation:float var(--float-dur,3.5s) ease-in-out infinite;
+  filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));}
+
+/* バッジ */
+.p-badge{
+  position:absolute;top:-3px;right:-3px;z-index:4;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--badge-bg,var(--gold));
+  color:var(--badge-c,var(--blue-deep));
+  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(2,8,20,.9);}
+.p-badge.done-badge{background:var(--green) !important;color:white !important;}
+
+/* テキスト */
+.planet-text{text-align:center;min-width:0;overflow:hidden;}
+.p-step-num{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;
+  color:rgba(255,255,255,.35);letter-spacing:1px;margin-bottom:2px;}
+.p-name-en{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  color:var(--name-c,var(--blue-light));letter-spacing:.3px;
+  word-break:break-all;overflow-wrap:break-word;}
+.p-name-ja{font-size:11px;font-weight:700;color:rgba(255,255,255,.8);
+  word-break:break-all;overflow-wrap:break-word;}
+.p-reward{font-size:10px;color:var(--gold);margin-top:2px;
+  word-break:break-all;overflow-wrap:break-word;}
+
+/* ===== ボトムナビ ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;height:var(--nav-h);
+  display:flex;
+  background:rgba(2,8,22,.97);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(61,142,240,.2);z-index:100;
+  min-width:0;overflow:hidden;}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:8px 4px;
+  font-size:9px;color:var(--blue-light);
+  border:none;background:none;cursor:pointer;
+  transition:color .2s,background .2s;text-decoration:none;
+  min-width:0;overflow:hidden;}
+.nav-btn.active{color:var(--blue-bright);background:rgba(61,142,240,.08);}
+.nav-btn:active{color:var(--blue-bright);}
+.nav-icon{font-size:22px;line-height:1;}
+.nav-label{font-size:9px;letter-spacing:.3px;white-space:nowrap;}
+
+/* ===== AI TOOL カード ===== */
+.ai-tool-card{
+  margin:6px 16px 0;
+  background:linear-gradient(135deg,rgba(80,20,160,.28),rgba(40,10,90,.35));
+  border:1.5px solid rgba(168,85,247,.45);border-radius:var(--radius);
+  padding:16px 16px 14px;
+  box-shadow:0 0 28px rgba(140,50,230,.15),inset 0 1px 0 rgba(255,255,255,.07);
+  min-width:0;overflow:hidden;}
+.ai-tool-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;
+  min-width:0;overflow:hidden;}
+.ai-tool-badge{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:white;
+  box-shadow:0 0 14px rgba(168,85,247,.5);}
+.ai-tool-title-block{flex:1;min-width:0;overflow:hidden;}
+.ai-tool-subtitle{font-size:9px;color:rgba(168,85,247,.7);letter-spacing:1.5px;font-weight:700;
+  word-break:break-all;overflow-wrap:break-word;}
+.ai-tool-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:17px;font-weight:900;
+  color:white;word-break:break-all;overflow-wrap:break-word;}
+.ai-tool-desc{font-size:12px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:10px;
+  word-break:break-all;overflow-wrap:break-word;}
+.ai-tool-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-width:0;}
+.ai-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+  white-space:nowrap;}
+.ai-chip.free{
+  background:rgba(168,85,247,.18);border:1px solid rgba(168,85,247,.4);
+  color:#d8b4fe;}
+.ai-chip.warn{
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);
+  color:#fcd34d;}
+.ai-tool-btns{display:flex;gap:10px;min-width:0;}
+.ai-btn-guide,.ai-btn-open{
+  flex:1;min-width:0;padding:12px 8px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;font-weight:900;
+  text-decoration:none;cursor:pointer;transition:transform .18s ease;
+  word-break:break-all;overflow-wrap:break-word;}
+.ai-btn-guide:active,.ai-btn-open:active{transform:scale(.96);}
+.ai-btn-guide{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.8);}
+.ai-btn-open{
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  border:none;color:white;
+  box-shadow:0 4px 18px rgba(140,50,230,.4);}
+
+
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(2,6,18,.9);backdrop-filter:blur(10px);
+  align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;animation:fadeIn .25s ease;}
+.modal-sheet{width:100%;max-width:430px;
+  background:linear-gradient(180deg,#0d1e4a 0%,#060f28 100%);
+  border-top:1px solid rgba(61,142,240,.3);
+  border-radius:24px 24px 0 0;
+  padding:22px 20px 44px;animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  max-height:88vh;overflow-y:auto;min-width:0;overflow-x:hidden;}
+.modal-handle{width:38px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:0 auto 18px;}
+.modal-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  min-width:0;overflow:hidden;}
+.modal-header-icon{font-size:22px;flex-shrink:0;}
+.modal-header h2{font-family:'Zen Kaku Gothic New',sans-serif;font-size:17px;font-weight:900;
+  word-break:break-all;overflow-wrap:break-word;}
+.d-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:12px 13px;margin-bottom:9px;}
+.d-item p{font-size:12px;color:rgba(255,255,255,.7);line-height:1.85;
+  word-break:break-all;overflow-wrap:break-word;}
+.d-item.warn{background:rgba(255,200,50,.06);border-color:rgba(245,200,66,.22);}
+.d-item.warn p{color:rgba(255,215,90,.82);}
+.modal-close-btn{width:100%;padding:14px;margin-top:6px;
+  background:linear-gradient(135deg,var(--blue-vivid),#0d4fc0);
+  border:none;border-radius:var(--radius-sm);cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;color:white;}
+/* ===== CONTACT US セクション ===== */
+.contact-section{
+  margin:20px 16px 24px;
+  background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(80,20,160,.18));
+  border:1.5px solid rgba(168,85,247,.35);border-radius:var(--radius);
+  padding:20px 18px;text-align:center;
+  box-shadow:0 0 32px rgba(140,50,230,.1),inset 0 1px 0 rgba(255,255,255,.06);
+  min-width:0;overflow:hidden;}
+.contact-icon{font-size:28px;margin-bottom:8px;}
+.contact-label{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  color:rgba(168,85,247,.7);letter-spacing:2px;margin-bottom:6px;}
+.contact-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:18px;font-weight:900;
+  color:white;margin-bottom:8px;}
+.contact-desc{font-size:12px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:16px;
+  word-break:break-all;overflow-wrap:break-word;}
+.contact-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
+  border:none;border-radius:var(--radius-sm);
+  padding:13px 28px;cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;font-weight:900;color:white;
+  box-shadow:0 4px 20px rgba(131,58,180,.4);
+  transition:transform .18s ease;text-decoration:none;}
+.contact-btn:active{transform:scale(.96);}
+
+/* ===== インスタモーダル ===== */
+.insta-modal-overlay{display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(2,6,18,.92);backdrop-filter:blur(12px);
+  align-items:flex-end;justify-content:center;}
+.insta-modal-overlay.open{display:flex;animation:fadeIn .25s ease;}
+.insta-modal-sheet{width:100%;max-width:430px;
+  background:linear-gradient(180deg,#1a0a30 0%,#0d0520 100%);
+  border-top:1px solid rgba(168,85,247,.4);
+  border-radius:24px 24px 0 0;
+  padding:22px 20px 48px;animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  max-height:88vh;overflow-y:auto;min-width:0;overflow-x:hidden;text-align:center;}
+.insta-modal-handle{width:38px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:0 auto 18px;}
+.insta-modal-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:20px;font-weight:900;
+  color:white;margin-bottom:6px;}
+.insta-modal-sub{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:22px;line-height:1.6;
+  word-break:break-all;overflow-wrap:break-word;}
+.insta-qr-wrap{
+  width:180px;height:180px;margin:0 auto 18px;
+  background:white;border-radius:16px;padding:12px;
+  box-shadow:0 0 30px rgba(168,85,247,.35);
+  display:flex;align-items:center;justify-content:center;}
+.insta-qr-wrap img{width:100%;height:100%;object-fit:contain;}
+.insta-qr-wrap canvas{width:100% !important;height:100% !important;}
+.insta-account-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;
+  color:white;margin-bottom:4px;}
+.insta-account-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:18px;}
+.insta-link-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
+  border:none;border-radius:var(--radius-sm);
+  padding:14px 24px;cursor:pointer;width:100%;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:900;color:white;
+  box-shadow:0 4px 20px rgba(131,58,180,.45);
+  transition:transform .18s ease;text-decoration:none;margin-bottom:12px;}
+.insta-link-btn:active{transform:scale(.97);}
+.insta-close-btn{width:100%;padding:13px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--radius-sm);cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;font-weight:900;color:rgba(255,255,255,.65);}
+.insta-close-btn:active{transform:scale(.98);}
+</style>
+</head>
+<body>
+<div class="bg-canvas" id="bgCanvas"></div>
+<div class="app-wrapper">
+
+<!-- ====== HEADER ====== -->
+<div class="map-header">
+  <div class="map-header-top">
+    <div class="app-logo">FAST<span>Journey</span></div>
+    </div>
+  </div>
+
+<!-- ====== SCROLL ====== -->
+<div class="scroll-content">
+
+  <!-- ソノボくんバナー -->
+  <div class="sonobo-banner">
+    <img class="sonobo-mini-img" src="assets/sonobo_4.png" alt="ソノボくん">
+    <div class="sonobo-speech">
+      <div class="sonobo-speech-name">🤖 ソノボくん — ナビゲーター</div>
+      <p class="sonobo-speech-text" id="tipText">キャプテン！銀河マップの惑星をタップして旅を始めよう🚀</p>
+    </div>
+  </div>
+
+  <!-- クリアバナー（帰還時） -->
+  <div class="clear-banner" id="clearBanner" style="display:none;">
+    <span class="clear-icon">🎉</span>
+    <div class="clear-body">
+      <p class="clear-title" id="clearTitle">ミッションクリア！</p>
+      <p class="clear-text" id="clearText">次のミッションへ進もう！</p>
+    </div>
+  </div>
+
+  <!-- ===== AI TOOL カード ===== -->
+  <div class="section-label">🤖 AI TOOL</div>
+  <div class="ai-tool-card">
+    <div class="ai-tool-header">
+      <div class="ai-tool-badge">AI</div>
+      <div class="ai-tool-title-block">
+        <div class="ai-tool-subtitle">AI TOOL — 画像解析</div>
+        <div class="ai-tool-title">エコー画像をAIに聞く</div>
+      </div>
+    </div>
+    <p class="ai-tool-desc">うまく描出できない・プローブの動かし方に迷ったときにAIが改善策を提示してくれる！<br>※Sonoforgeが提供するAI TOOLです</p>
+    <div class="ai-tool-chips">
+      <span class="ai-chip free">✦ 無料で使える</span>
+      <span class="ai-chip warn">⚠ モリソン窩のみ対応</span>
+    </div>
+    <div class="ai-tool-btns">
+      <a class="ai-btn-guide" href="ai-guide.html" onclick="playSound('tap')">📖 使い方ガイド</a>
+      <a class="ai-btn-open" href="https://sonoforge.streamlit.app/" target="_blank" onclick="playSound('warp')">🔬 AI解析を開く</a>
+    </div>
+  </div>
+
+  <!-- セクションラベル -->
+  <div class="section-label">🌌 ギャラクシーマップ</div>
+
+  <!-- ===== 銀河マップ（ジグザグ） ===== -->
+  <div class="galaxy-map-wrap">
+
+    <!-- 航路SVG（惑星間ライン） -->
+    <svg class="route-svg" id="routeSvg" viewBox="0 0 390 720"
+         preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fb923c" stop-opacity=".05"/>
+          <stop offset="50%" stop-color="#fb923c" stop-opacity=".4"/>
+          <stop offset="100%" stop-color="#fb923c" stop-opacity=".05"/>
+        </linearGradient>
+        <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" stop-opacity=".05"/>
+          <stop offset="50%" stop-color="#10b981" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#10b981" stop-opacity=".05"/>
+        </linearGradient>
+        <linearGradient id="lg3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee" stop-opacity=".05"/>
+          <stop offset="50%" stop-color="#22d3ee" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#22d3ee" stop-opacity=".05"/>
+        </linearGradient>
+        <linearGradient id="lg4" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3d8ef0" stop-opacity=".05"/>
+          <stop offset="50%" stop-color="#3d8ef0" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#3d8ef0" stop-opacity=".05"/>
+        </linearGradient>
+        <filter id="glow2">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- S1(右,74) → S2(左,222) -->
+      <path d="M 290 74 C 260 140, 130 158, 100 222"
+            stroke="url(#lg1)" stroke-width="2" fill="none"
+            filter="url(#glow2)" stroke-dasharray="7 5"
+            style="animation:pathPulse 3s ease-in-out infinite;"/>
+      <!-- S2(左,222) → S3(右,370) -->
+      <path d="M 100 222 C 130 288, 260 306, 290 370"
+            stroke="url(#lg2)" stroke-width="2" fill="none"
+            filter="url(#glow2)" stroke-dasharray="7 5"
+            style="animation:pathPulse 3s .8s ease-in-out infinite;"/>
+      <!-- S3(右,370) → S4(左,518) -->
+      <path d="M 290 370 C 260 436, 130 454, 100 518"
+            stroke="url(#lg3)" stroke-width="2" fill="none"
+            filter="url(#glow2)" stroke-dasharray="7 5"
+            style="animation:pathPulse 3s 1.6s ease-in-out infinite;"/>
+      <!-- S4(左,518) → S5(中,680) -->
+      <path d="M 100 518 C 150 576, 240 610, 195 680"
+            stroke="url(#lg4)" stroke-width="2" fill="none"
+            filter="url(#glow2)" stroke-dasharray="7 5"
+            style="animation:pathPulse 3s 2.4s ease-in-out infinite;"/>
+      <!-- 航路上の装飾ドット -->
+      <circle cx="196" cy="148" r="3" fill="#fb923c" opacity=".45"/>
+      <circle cx="196" cy="296" r="2.5" fill="#10b981" opacity=".4"/>
+      <circle cx="196" cy="444" r="3" fill="#22d3ee" opacity=".4"/>
+      <circle cx="162" cy="598" r="2.5" fill="#3d8ef0" opacity=".4"/>
+    </svg>
+
+    <div class="zigzag-track">
+
+      <!-- STEP 1 — 右 -->
+      <div class="step-row to-right" style="animation-delay:.1s;">
+        <a class="planet-card" href="step1.html" onclick="playSound('tap')"
+           style="--name-c:#fdba74;animation-delay:.15s;">
+          <div class="planet-body"
+               style="--bg:rgba(60,20,5,.85);--border-c:rgba(251,146,60,.45);
+                      --glow-c:rgba(234,88,12,.45);--ring-c:rgba(251,146,60,.3);
+                      --ring-c2:rgba(251,146,60,.14);--ring-dur:9s;">
+            <div class="p-glow"></div>
+            <div class="p-ring-outer"></div>
+            <div class="p-ring-inner"></div>
+            <img class="p-sonobo" src="assets/sonobo_7.png" alt="STEP1"
+                 style="--float-dur:3.4s;transform: translateY(4px);">
+            <div class="p-badge" id="s1badge">1</div>
+          </div>
+          <div class="planet-text">
+            <div class="p-step-num">MISSION 1</div>
+            <div class="p-name-en">ORIGIN</div>
+            <div class="p-name-ja">惑星オリジン</div>
+            <div class="p-reward" id="s1reward">FASTの重要性</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- STEP 2 — 左 -->
+      <div class="step-row to-left" style="animation-delay:.3s;">
+        <a class="planet-card" href="step2.html" onclick="playSound('tap')"
+           style="--name-c:#6ee7b7;animation-delay:.35s;">
+          <div class="planet-body"
+               style="--bg:rgba(4,32,22,.85);--border-c:rgba(16,185,96,.42);
+                      --glow-c:rgba(5,120,60,.45);--ring-c:rgba(16,185,96,.28);
+                      --ring-c2:rgba(16,185,96,.13);--ring-dur:11s;">
+            <div class="p-glow"></div>
+            <div class="p-ring-outer" style="animation-direction:reverse;"></div>
+            <div class="p-ring-inner"></div>
+            <img class="p-sonobo" src="assets/sonobo_4.png" alt="STEP2"
+                 style="--float-dur:3.8s;">
+            <div class="p-badge" id="s2badge">2</div>
+          </div>
+          <div class="planet-text">
+            <div class="p-step-num">MISSION 2</div>
+            <div class="p-name-en">ANATOMIA</div>
+            <div class="p-name-ja">惑星アナトミア</div>
+            <div class="p-reward" id="s2reward">最低限の解剖知識</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- STEP 3 — 右 -->
+      <div class="step-row to-right" style="animation-delay:.5s;">
+        <a class="planet-card" href="step3.html" onclick="playSound('tap')"
+           style="--name-c:#67e8f9;animation-delay:.55s;">
+          <div class="planet-body"
+               style="--bg:rgba(4,32,42,.85);--border-c:rgba(34,211,238,.38);
+                      --glow-c:rgba(6,182,212,.42);--ring-c:rgba(34,211,238,.26);
+                      --ring-c2:rgba(34,211,238,.12);--ring-dur:12s;">
+            <div class="p-glow"></div>
+            <div class="p-ring-outer"></div>
+            <div class="p-ring-inner"></div>
+            <img class="p-sonobo" src="assets/sonobo_5.png" alt="STEP3"
+                 style="--float-dur:4.2s;">
+            <div class="p-badge" id="s3badge">3</div>
+          </div>
+          <div class="planet-text">
+            <div class="p-step-num">MISSION 3</div>
+            <div class="p-name-en">READINESS</div>
+            <div class="p-name-ja">惑星レディネス</div>
+            <div class="p-reward" id="s3reward">必要な準備</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- STEP 4 — 左 -->
+      <div class="step-row to-left" style="animation-delay:.7s;">
+        <a class="planet-card" href="step4.html" onclick="playSound('tap')"
+           style="--name-c:#7bb8f8;animation-delay:.75s;">
+          <div class="planet-body"
+               style="--bg:rgba(10,30,80,.85);--border-c:rgba(61,142,240,.45);
+                      --glow-c:rgba(21,101,216,.45);--ring-c:rgba(61,142,240,.3);
+                      --ring-c2:rgba(61,142,240,.14);--ring-dur:8s;">
+            <div class="p-glow"></div>
+            <div class="p-ring-outer" style="animation-direction:reverse;"></div>
+            <div class="p-ring-inner"></div>
+            <img class="p-sonobo" src="assets/sonobo_8.png" alt="STEP4"
+                 style="--float-dur:3.1s;">
+            <div class="p-badge" id="s4badge">4</div>
+          </div>
+          <div class="planet-text">
+            <div class="p-step-num">MISSION 4</div>
+            <div class="p-name-en">PROBIA</div>
+            <div class="p-name-ja">惑星プロービア</div>
+            <div class="p-reward" id="s4reward">ハンズオン</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- STEP 5 — 中央（ボス惑星・特大） -->
+      <div class="step-row to-center" style="animation-delay:.9s;height:160px;">
+        <a class="planet-card" href="step5.html" onclick="playSound('tap')"
+           style="--name-c:#fde68a;animation-delay:.95s;width:140px;">
+          <div class="planet-body" style="width:96px;height:96px;
+               --bg:rgba(40,28,0,.9);--border-c:rgba(253,211,77,.55);
+               --glow-c:rgba(234,179,8,.55);--ring-c:rgba(253,211,77,.38);
+               --ring-c2:rgba(253,211,77,.18);--ring-dur:7s;">
+            <div class="p-glow" style="inset:-20px;"></div>
+            <!-- 二重リング -->
+            <div class="p-ring-outer" style="inset:-9px;border-width:2px;"></div>
+            <div class="p-ring-outer" style="inset:-16px;animation-direction:reverse;animation-duration:16s;border-color:rgba(168,85,247,.18);"></div>
+            <div class="p-ring-inner" style="inset:-5px;"></div>
+            <img class="p-sonobo" src="assets/sonobo_6.png" alt="STEP5"
+                 style="width:70px;height:70px;--float-dur:3.6s;">
+            <div class="p-badge" id="s5badge"
+                 style="--badge-bg:linear-gradient(135deg,#f5c842,#f97316);
+                        background:linear-gradient(135deg,#f5c842,#f97316);
+                        width:26px;height:26px;font-size:11px;--badge-c:#fff;">5</div>
+          </div>
+          <div class="planet-text">
+            <div class="p-step-num" style="color:rgba(253,211,77,.7);">FINAL — STAR</div>
+            <div class="p-name-en" style="color:#fde68a;">FASTALIS</div>
+            <div class="p-name-ja" style="font-size:12px;font-weight:900;">恒星ファスタリス</div>
+            <div class="p-reward" id="s5reward" style="color:#fde68a;">症例トレーニング</div>
+          </div>
+        </a>
+      </div>
+
+    </div><!-- /zigzag-track -->
+  </div><!-- /galaxy-map-wrap -->
+
+  <!-- ===== CONTACT US ===== -->
+  <div class="section-label">📡 CONTACT</div>
+  <div class="contact-section">
+    <div class="contact-icon">📸</div>
+    <div class="contact-label">FOLLOW US</div>
+    <div class="contact-title">Instagramで繋がろう</div>
+    <p class="contact-desc">
+      ご意見・ご感想・誤りのご指摘など、<br>
+      DMでお気軽にお送りください！<br>
+      Sonoforgeに関する情報も発信中です。
+    </p>
+    <button class="contact-btn" onclick="openInstaModal();playSound('tap')">
+      📷 Instagramを見る
+    </button>
+  </div>
+
+</div><!-- /scroll-content -->
+
+<!-- ====== BOTTOM NAV ====== -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="playSound('tap')">
+    <span class="nav-icon">🗺️</span>
+    <span class="nav-label">MAP</span>
+  </button>
+  <a class="nav-btn" href="https://sonoforge.streamlit.app/" target="_blank" onclick="playSound('tap')">
+    <span class="nav-icon">🤖</span>
+    <span class="nav-label">AI TOOL</span>
+  </a>
+  <a class="nav-btn" href="quickcheck.html" onclick="playSound('tap')">
+    <span class="nav-icon">⚡</span>
+    <span class="nav-label">Quick Check</span>
+  </a>
+  <button class="nav-btn" onclick="openDisclaimer();playSound('tap')">
+    <span class="nav-icon">⚠️</span>
+    <span class="nav-label">注意事項</span>
+  </button>
+</nav>
+
+<!-- ====== 免責モーダル ====== -->
+<div class="modal-overlay" id="disclaimerModal" onclick="if(event.target===this)closeDisclaimer()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-header-icon">⚠️</span>
+      <h2>注意事項・免責事項</h2>
+    </div>
+    <div class="d-item"><p>■ 本アプリの目的は、初学者がFASTの基本的手技を身につけることにあります。本アプリのみでFASTを完全に習得できるものではありません。</p></div>
+    <div class="d-item"><p>■ 標準的な体型の健康な若年男性を被検者として想定しています。</p></div>
+    <div class="d-item"><p>■ 本アプリでは練習中のプライバシーに配慮し、膀胱直腸窩（ダグラス窩）の描出は省略しています。</p></div>
+    <div class="d-item"><p>■ 一部、医学的に厳密ではない表現が含まれる場合があります。</p></div>
+    <div class="d-item"><p>■ 本アプリに掲載されているイラストはイメージです。</p></div>
+    <div class="d-item warn"><p>■ 本アプリの無断での共有はご遠慮ください。</p></div>
+    <button class="modal-close-btn" onclick="closeDisclaimer()">閉じる</button>
+  </div>
+</div>
+
+<!-- ====== インスタモーダル ====== -->
+<div class="insta-modal-overlay" id="instaModal" onclick="if(event.target===this)closeInstaModal()">
+  <div class="insta-modal-sheet">
+    <div class="insta-modal-handle"></div>
+    <div class="insta-modal-title">📸 Instagram</div>
+    <p class="insta-modal-sub">
+      ご意見・ご感想・誤りのご指摘など<br>DMでお待ちしています！<br>
+      フォローでお気軽に繋がってください🙌
+    </p>
+    <!-- QRコード -->
+    <div class="insta-qr-wrap">
+      <canvas id="instaQrCanvas"></canvas>
+    </div>
+    <div class="insta-account-name">@sono.forge</div>
+    <div class="insta-account-sub">インスタグラム</div>
+    <a class="insta-link-btn" href="https://www.instagram.com/sono.forge?igsh=MXB5MnEweGs4dTA2NQ%3D%3D&utm_source=qr" target="_blank" id="instaLinkBtn" onclick="playSound('tap')">
+      📷 Instagramを開く
+    </a>
+    <button class="insta-close-btn" onclick="closeInstaModal()">閉じる</button>
+  </div>
+</div>
+
+</div><!-- /app-wrapper -->
+
+<script>
+// ===== 背景 =====
+function initBg(){
+  const bg=document.getElementById('bgCanvas');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+.4;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${Math.random()*3+2}s;--delay:${Math.random()*5}s;--op:${Math.random()*.65+.15};`;
+    bg.appendChild(s);
+  }
+  // 流れ星
+  const mStyle=document.createElement('style');
+  mStyle.textContent=`@keyframes meteor{0%{opacity:0;transform:translateX(-30px) translateY(-10px) rotate(-20deg)}8%{opacity:.9}50%{opacity:0;transform:translateX(220px) translateY(80px) rotate(-20deg)}100%{opacity:0}}`;
+  document.head.appendChild(mStyle);
+  for(let i=0;i<4;i++){
+    const m=document.createElement('div');
+    m.style.cssText=`position:absolute;width:${50+Math.random()*80}px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.9),transparent);border-radius:1px;left:${Math.random()*70}%;top:${Math.random()*50}%;opacity:0;animation:meteor ${Math.random()*4+5}s ${Math.random()*10}s infinite ease-in;`;
+    bg.appendChild(m);
+  }
+}
+initBg();
+
+// ===== 音響 =====
+let audioCtx=null;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+const SOUNDS={
+  tap:()=>{const c=getCtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=800;o.type='sine';g.gain.setValueAtTime(.1,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.08);o.start(c.currentTime);o.stop(c.currentTime+.08);},
+  warp:()=>{const c=getCtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.setValueAtTime(100,c.currentTime);o.frequency.exponentialRampToValueAtTime(2000,c.currentTime+.6);g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.8);o.start(c.currentTime);o.stop(c.currentTime+.8);},
+  reward:()=>{const c=getCtx();[523,659,784,1047,1319].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='triangle';const t=c.currentTime+i*.12;g.gain.setValueAtTime(.25,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);o.start(t);o.stop(t+.5);});}
+};
+function playSound(n){try{SOUNDS[n]&&SOUNDS[n]();}catch(e){}}
+
+// ===== ワープ =====
+function warpTo(url){
+  playSound('warp');
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;background:black;opacity:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';
+  for(let i=0;i<30;i++){const st=document.createElement('div');const a=Math.random()*360,l=Math.random()*200+50;st.style.cssText=`position:absolute;left:50%;top:50%;width:${l}px;height:2px;background:linear-gradient(90deg,white,transparent);transform-origin:left center;transform:rotate(${a}deg) scaleX(0);animation:sOut .4s .1s ease forwards;`;ov.appendChild(st);}
+  const tx=document.createElement('p');tx.textContent='WARP DRIVE ENGAGED';tx.style.cssText="font-family:'Orbitron',sans-serif;font-size:13px;color:white;letter-spacing:4px;opacity:0;animation:fio .8s .2s ease forwards;z-index:1;word-break:break-all;overflow-wrap:break-word;";ov.appendChild(tx);
+  document.body.appendChild(ov);
+  const ss=document.createElement('style');ss.textContent='@keyframes sOut{0%{transform:rotate(var(--a,0deg)) scaleX(0)}50%{transform:rotate(var(--a,0deg)) scaleX(1);opacity:1}100%{transform:rotate(var(--a,0deg)) scaleX(0) translateX(300px);opacity:0}}@keyframes fio{0%,100%{opacity:0}30%,70%{opacity:1}}';document.head.appendChild(ss);
+  ov.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'}).finished.then(()=>{setTimeout(()=>{ov.animate([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'}).finished.then(()=>{location.href=url;});},700);});
+}
+
+// ===== モーダル =====
+function openDisclaimer(){document.getElementById('disclaimerModal').classList.add('open');}
+function closeDisclaimer(){document.getElementById('disclaimerModal').classList.remove('open');}
+
+// ===== インスタモーダル =====
+const INSTA_URL = 'https://www.instagram.com/sono.forge?igsh=MXB5MnEweGs4dTA2NQ%3D%3D&utm_source=qr';
+let qrGenerated = false;
+function openInstaModal(){
+  document.getElementById('instaModal').classList.add('open');
+  if(!qrGenerated){
+    generateQR();
+    qrGenerated = true;
+  }
+}
+function closeInstaModal(){document.getElementById('instaModal').classList.remove('open');}
+function generateQR(){
+  const canvas = document.getElementById('instaQrCanvas');
+  // QRコードをSVGベースで手動生成（ライブラリ不要・シンプル版）
+  // qrcode.jsをCDNから動的ロード
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload = function(){
+    const wrap = document.getElementById('instaQrCanvas').parentElement;
+    wrap.innerHTML = '';
+    new QRCode(wrap, {
+      text: INSTA_URL,
+      width: 156,
+      height: 156,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  };
+  document.head.appendChild(s);
+}
+
+// ===== Tips =====
+const tips=[
+  'キャプテン！銀河マップの惑星をタップして旅を始めよう🚀',
+  'Mission 4「プロービア星」がこのアプリのメインだ！',
+  '各MISSIONをクリアすると特別な報酬がもらえるぞ🏅',
+  '恒星ファスタリスをクリアしたキャプテンには称号が授与される！',
+  'AI TOOLはエコー画像の解析に使ってみよう🤖',
+];
+let ti=0;
+const tipEl=document.getElementById('tipText');
+setInterval(()=>{
+  ti=(ti+1)%tips.length;
+  if(tipEl){tipEl.style.opacity='0';setTimeout(()=>{tipEl.textContent=tips[ti];tipEl.style.opacity='1';},300);}
+},4500);
+
+// ===== URLパラメータ（stepクリア帰還） =====
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const from=params.get('from');
+  const cfgs={
+    step1:{title:'✅ STEP 1 クリア！🥽 ギャラクシーグラス獲得！',text:'FASTの重要性をマスター。STEP 2 アナトミアへ！',
+      bid:'s1badge',btxt:'✓',bbg:'#22c55e',rid:'s1reward',rtxt:'🥽 獲得済'},
+    step2:{title:'✅ STEP 2 クリア！🚀 宇宙船アップグレード！',text:'解剖知識をマスター。STEP 3 レディネスへ！',
+      bid:'s2badge',btxt:'✓',bbg:'#22c55e',rid:'s2reward',rtxt:'🚀 アップ済'},
+    step3:{title:'✅ STEP 3 クリア！🍬 宇宙グミ獲得！',text:'準備・プローブ操作をマスター。STEP 4 プロービアへ！',
+      bid:'s3badge',btxt:'✓',bbg:'#22c55e',rid:'s3reward',rtxt:'🍬 獲得済'},
+    step4:{title:'✅ STEP 4 クリア！🛂 パスポート獲得！',text:'実践描出をマスター。最終ミッション STEP 5 へ！',
+      bid:'s4badge',btxt:'✓',bbg:'#22c55e',rid:'s4reward',rtxt:'🛂 入手済み'},
+    step5:{title:'🏅 全クリア！銀河の見習い救命医！',text:'Galactic Rescue Cadet の称号を獲得！おめでとう🎉',
+      bid:'s5badge',btxt:'🏅',bbg:'#f5c842',rid:'s5reward',rtxt:'🏅 称号獲得！'},
+  };
+  const cfg=cfgs[from];
+  if(cfg){
+    const banner=document.getElementById('clearBanner');
+    document.getElementById('clearTitle').textContent=cfg.title;
+    document.getElementById('clearText').textContent=cfg.text;
+    banner.style.display='flex';
+    if(cfg.bid){
+      const b=document.getElementById(cfg.bid);
+      if(b){b.textContent=cfg.btxt;b.style.background=cfg.bbg;b.style.color=cfg.bbg==='#f5c842'?'#0a1628':'white';b.classList.add('done-badge');}
+      const r=document.getElementById(cfg.rid);
+      if(r)r.textContent=cfg.rtxt;
+    }
+    sessionStorage.setItem('done_'+from,'1');
+    setTimeout(()=>playSound('reward'),300);
+    setTimeout(()=>{
+      if(banner){banner.style.transition='opacity 1s';banner.style.opacity='0';setTimeout(()=>{banner.style.display='none';},1000);}
+    },5500);
+    history.replaceState(null,'',window.location.pathname);
+  }
+  updateProgress();
+})();
+
+function updateProgress(){
+  const keys=['step1','step2','step3','step4','step5'];
+  const done=keys.filter(k=>sessionStorage.getItem('done_'+k)==='1').length;
+  const pct=Math.round(done/keys.length*100);
+  setTimeout(()=>{
+    const bar=document.getElementById('overallBar');
+    if(bar)bar.style.width=pct+'%';
+  },400);
+  const pctEl=document.getElementById('overallPct');
+  if(pctEl)pctEl.textContent=pct+'%';
+  const chip=document.getElementById('missionChip');
+  if(chip)chip.textContent=done+' / '+keys.length+' 完了';
+}
+</script>
+</body>
+</html>

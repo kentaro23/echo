@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>STEP 3 — 惑星レディネス | FAST Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-deep:   #061a1a;
+  --blue-mid:    #0d3a3a;
+  --blue-vivid:  #0e9e9e;
+  --blue-bright: #2dd4d4;
+  --blue-light:  #7ef0f0;
+  --white:       #ffffff;
+  --gold:        #f5c842;
+  --green:       #22c55e;
+  --red:         #ef4444;
+  --purple:      #a855f7;
+  --teal:        #0e9e9e;
+  --cyan:        #2dd4d4;
+  --radius:      20px;
+  --radius-sm:   12px;
+  --radius-lg:   28px;
+  --nav-h:       72px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; min-height:100vh; font-family:'Noto Sans JP',sans-serif; background:var(--blue-deep); color:var(--white); overflow-x:hidden; }
+
+/* ===== はみ出し防止（必須） ===== */
+p, div, span, li, h1, h2, h3, h4, h5, h6 {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+[class*="flex"], .flex-row, .nav-row, .step-item, .sonobo-row, .info-chips {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ===== 背景 ===== */
+.bg-canvas {
+  position:fixed; inset:0; z-index:0; overflow:hidden;
+  background:linear-gradient(160deg,#020f0f 0%,#041e1e 40%,#031515 100%);
+}
+.bg-canvas::before {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%,rgba(14,158,158,.22) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 80%,rgba(45,212,212,.12) 0%,transparent 60%);
+}
+.star { position:absolute; border-radius:50%; background:white; opacity:0;
+  animation:twinkle var(--dur,3s) var(--delay,0s) infinite ease-in-out; }
+@keyframes twinkle { 0%,100%{opacity:0;transform:scale(.5)} 50%{opacity:var(--op,.7);transform:scale(1)} }
+
+/* ===== 惑星レディネス・背景装飾 ===== */
+.planet-deco {
+  position:fixed; bottom:-80px; right:-80px; z-index:0;
+  width:260px; height:260px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(45,212,212,.22),rgba(14,158,158,.1) 60%,transparent 80%);
+  border:1px solid rgba(45,212,212,.18);
+  box-shadow:0 0 60px rgba(45,212,212,.08), inset 0 0 40px rgba(14,158,158,.06);
+  animation:planetFloat 8s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes planetFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-15px) rotate(3deg)} }
+
+/* ===== アプリラッパー ===== */
+.app-wrapper { position:relative; z-index:1; max-width:430px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+
+/* ===== アニメーション ===== */
+@keyframes fadeIn    { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn     { from{opacity:0;transform:scale(.3)} to{opacity:1;transform:scale(1)} }
+@keyframes float     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes glowPulse { 0%,100%{opacity:.5;transform:translateX(-50%) scaleX(1)} 50%{opacity:.9;transform:translateX(-50%) scaleX(1.2)} }
+@keyframes slideUp   { from{transform:translateY(100%)} to{transform:translateY(0)} }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 15%{transform:scale(1.05)} 30%{transform:scale(1)} }
+@keyframes shimmer   { 0%{background-position:-200% center} 100%{background-position:200% center} }
+@keyframes shake     { 0%,100%{transform:rotate(0deg)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(8deg)} 60%{transform:rotate(-5deg)} 80%{transform:rotate(5deg)} }
+@keyframes fanSwing  { 0%{transform:rotate(-25deg)} 50%{transform:rotate(25deg)} 100%{transform:rotate(-25deg)} }
+@keyframes checkPop  { 0%{transform:scale(0) rotate(-10deg)} 80%{transform:scale(1.1) rotate(3deg)} 100%{transform:scale(1) rotate(0deg)} }
+@keyframes spin      { to{transform:rotate(360deg)} }
+@keyframes pulse     { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@keyframes rocketLaunch { from{transform:translateY(0)} to{transform:translateY(-6px)} }
+@keyframes warpStreak { 0%{opacity:0;transform:scaleX(0)} 50%{opacity:1;transform:scaleX(1)} 100%{opacity:0;transform:scaleX(1.5)} }
+@keyframes scanLine { 0%,100%{opacity:.4} 50%{opacity:.8} }
+@keyframes glitch {
+  0%,100%{clip-path:inset(0 0 100% 0);transform:translate(0)}
+  20%{clip-path:inset(10% 0 75% 0);transform:translate(-2px,1px)}
+  40%{clip-path:inset(30% 0 50% 0);transform:translate(2px,-1px)}
+  60%{clip-path:inset(50% 0 30% 0);transform:translate(-1px,2px)}
+  80%{clip-path:inset(70% 0 10% 0);transform:translate(1px,-2px)}
+}
+
+.sonobo-float { animation:float 3.2s ease-in-out infinite; }
+.sonobo-glow  {
+  position:absolute; bottom:-10px; left:50%; transform:translateX(-50%);
+  width:110px; height:18px;
+  background:radial-gradient(ellipse,rgba(14,158,158,.55) 0%,transparent 70%);
+  border-radius:50%; animation:glowPulse 3.2s ease-in-out infinite;
+}
+.glass-card {
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--radius);
+  box-shadow:0 4px 30px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* ===== ヘッダー ===== */
+.page-header {
+  display:flex; align-items:center; gap:12px; min-width:0; overflow:hidden;
+  padding:16px 16px 12px;
+  background:rgba(4,18,18,.97); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(45,212,212,.1);
+  position:sticky; top:0; z-index:50;
+}
+.back-btn {
+  width:38px; height:38px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.07);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:17px; flex-shrink:0;
+  text-decoration:none; color:white; transition:background .2s;
+}
+.back-btn:active { background:rgba(255,255,255,.15); }
+.header-info { flex:1; min-width:0; overflow:hidden; }
+.page-step-label { font-size:10px; color:var(--blue-light); font-weight:700; letter-spacing:2px; margin-bottom:2px; }
+.page-title { font-family:'Zen Kaku Gothic New',sans-serif; font-size:17px; font-weight:900; }
+.header-prog {
+  font-size:11px; color:var(--blue-light); font-weight:700;
+  background:rgba(14,158,158,.2); border:1px solid rgba(45,212,212,.35);
+  padding:4px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+}
+
+/* ===== プログレスバー ===== */
+.step-progress-bar { height:4px; background:rgba(255,255,255,.07); position:relative; }
+.step-progress-fill { height:100%; background:linear-gradient(90deg,var(--teal),var(--cyan)); transition:width .5s ease; }
+.step-progress-dots {
+  display:flex; gap:6px; justify-content:center; padding:8px 0 4px;
+  background:rgba(8,16,36,.6);
+}
+.dot {
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,.2); transition:all .3s;
+}
+.dot.active { background:var(--cyan); box-shadow:0 0 8px var(--cyan); transform:scale(1.3); }
+.dot.done { background:var(--green); }
+
+/* ===== スクロールエリア ===== */
+.scroll-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.content-pad { padding:20px 16px calc(var(--nav-h) + 16px); display:flex; flex-direction:column; gap:16px; }
+
+/* ===== セクション表示切替 ===== */
+.slide-section { display:none; }
+.slide-section.active { display:flex; flex-direction:column; gap:14px; animation:fadeIn .4s ease; }
+
+/* ===== 惑星着陸バナー（sec1専用） ===== */
+.planet-arrival-banner {
+  background:linear-gradient(135deg,rgba(4,30,30,.9),rgba(2,15,20,.95));
+  border:1px solid rgba(45,212,212,.35);
+  border-radius:var(--radius);
+  padding:20px 16px;
+  position:relative; overflow:hidden;
+}
+.planet-arrival-banner::before {
+  content:''; position:absolute; top:0; left:-100%;
+  width:60%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(45,212,212,.08),transparent);
+  animation:shimmer 3s linear infinite;
+  background-size:200% 100%;
+}
+.arrival-label { font-family:'Orbitron',sans-serif; font-size:9px; color:var(--gold); letter-spacing:3px; margin-bottom:8px; opacity:.8; }
+.arrival-planet { font-family:'Orbitron',sans-serif; font-size:22px; font-weight:900; color:white; margin-bottom:4px; }
+.arrival-subtitle { font-size:12px; color:var(--blue-light); letter-spacing:1px; }
+.arrival-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(245,200,66,.15); border:1px solid rgba(245,200,66,.4);
+  border-radius:20px; padding:4px 10px; margin-top:10px;
+  font-size:11px; color:var(--gold); font-weight:700;
+}
+.scan-effect {
+  position:absolute; top:0; right:0; bottom:0; width:2px;
+  background:linear-gradient(180deg,transparent,rgba(61,142,240,.8),transparent);
+  animation:scanLine 2s ease-in-out infinite;
+}
+
+/* ===== ソノボくん ===== */
+.sonobo-row {
+  display:flex; align-items:flex-start; gap:14px; min-width:0; overflow:hidden;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius); padding:14px;
+}
+.sonobo-wrap { position:relative; flex-shrink:0; width:68px; }
+.sonobo-wrap img { width:68px; height:68px; object-fit:contain; display:block; }
+.sonobo-bubble { flex:1; min-width:0; overflow:hidden; }
+.sb-name { font-size:10px; color:var(--blue-light); font-weight:700; margin-bottom:4px; letter-spacing:1px; }
+.sb-text { font-size:13px; line-height:1.65; color:rgba(255,255,255,.88); word-break:break-all; overflow-wrap:break-word; }
+.sb-text em { color:var(--blue-light); font-style:normal; font-weight:700; }
+
+/* ===== ストーリーカード（見出し） ===== */
+.story-card {
+  background:linear-gradient(135deg,rgba(14,158,158,.18) 0%,rgba(4,60,60,.28) 100%);
+  border:1px solid rgba(45,212,212,.25);
+  border-radius:var(--radius);
+  padding:18px;
+  position:relative; overflow:hidden;
+}
+.story-card::after {
+  content:''; position:absolute; top:-1px; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:.6;
+}
+.slide-num { font-size:10px; font-weight:700; letter-spacing:2px; color:var(--blue-light); margin-bottom:5px; text-transform:uppercase; }
+.slide-heading { font-family:'Zen Kaku Gothic New',sans-serif; font-size:20px; font-weight:900; line-height:1.2; margin-bottom:8px; }
+.slide-sub { font-size:13px; color:rgba(255,255,255,.65); line-height:1.6; }
+
+/* ===== ミッションログ風コンテナ ===== */
+.mission-log {
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(45,212,212,.2);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  font-family:monospace;
+}
+.log-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  font-size:10px; color:var(--blue-light); letter-spacing:2px; font-weight:700;
+}
+.log-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; }
+
+/* ===== ステップリスト ===== */
+.steps-list { display:flex; flex-direction:column; gap:10px; }
+.step-item {
+  display:flex; align-items:flex-start; gap:12px; min-width:0; overflow:hidden;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius-sm); padding:13px 14px;
+  transition:background .2s, border-color .2s, transform .15s;
+}
+.step-item:active { transform:scale(.98); }
+.step-num-badge {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:900;
+  background:linear-gradient(135deg,var(--teal),#0a7070);
+  color:white; margin-top:2px;
+}
+.step-text { flex:1; min-width:0; overflow:hidden; }
+.step-text p { font-size:13px; line-height:1.65; color:rgba(255,255,255,.82); word-break:break-all; overflow-wrap:break-word; }
+.step-text p strong { color:var(--blue-light); }
+.step-text .step-note { font-size:11px; color:rgba(255,255,255,.45); margin-top:3px; }
+
+/* ===== ハイライト・警告ボックス ===== */
+.highlight-box {
+  background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(245,200,66,.05));
+  border:1px solid rgba(245,200,66,.28);
+  border-radius:var(--radius-sm); padding:13px 15px;
+  display:flex; align-items:flex-start; gap:10px; min-width:0; overflow:hidden;
+}
+.hi-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
+.highlight-box p { font-size:13px; color:rgba(255,255,255,.85); line-height:1.7; word-break:break-all; overflow-wrap:break-word; min-width:0; }
+.highlight-box p strong { color:var(--gold); }
+
+.warn-box {
+  background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--radius-sm); padding:13px 15px;
+  display:flex; align-items:flex-start; gap:10px; min-width:0; overflow:hidden;
+}
+.warn-box p { font-size:13px; color:rgba(255,200,200,.9); line-height:1.7; word-break:break-all; overflow-wrap:break-word; min-width:0; }
+.warn-box p strong { color:#fca5a5; }
+
+/* ===== 写真カード ===== */
+.photo-card {
+  border-radius:var(--radius-sm); overflow:hidden;
+  border:1px solid rgba(61,142,240,.2);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.photo-card img { width:100%; height:auto; display:block; }
+.photo-caption {
+  background:rgba(0,0,0,.4); padding:8px 12px;
+  font-size:11px; color:rgba(255,255,255,.55); text-align:center;
+}
+.dual-photo { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.dual-photo .photo-card { border-radius:var(--radius-sm); }
+
+/* ===== 情報チップ ===== */
+.info-chips { display:flex; flex-wrap:wrap; gap:8px; min-width:0; overflow:hidden; }
+.info-chip {
+  font-size:12px; font-weight:700; padding:6px 12px; border-radius:20px;
+  background:rgba(45,212,212,.12); border:1px solid rgba(45,212,212,.28); color:var(--blue-light);
+}
+
+/* ===== 扇動アニメ ===== */
+.fan-demo {
+  background:rgba(255,255,255,.04); border:1px solid rgba(61,142,240,.2);
+  border-radius:var(--radius); padding:20px; text-align:center;
+}
+.fan-title { font-size:13px; font-weight:700; color:var(--blue-light); margin-bottom:16px; }
+.fan-svg-wrap { width:160px; height:120px; margin:0 auto 12px; position:relative; }
+.fan-probe { transform-origin:50% 100%; animation:fanSwing 1.5s ease-in-out infinite; }
+.fan-note { font-size:11px; color:rgba(255,255,255,.45); }
+
+/* ===== チェックリスト ===== */
+.checklist { display:flex; flex-direction:column; gap:8px; }
+.check-item {
+  display:flex; align-items:center; gap:12px; min-width:0; overflow:hidden;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius-sm); padding:13px 14px; cursor:pointer;
+  transition:background .2s, border-color .2s;
+}
+.check-item.checked { background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.3); }
+.check-box {
+  width:26px; height:26px; border-radius:8px; flex-shrink:0;
+  border:2px solid rgba(255,255,255,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; transition:all .2s; background:rgba(255,255,255,.04);
+}
+.check-item.checked .check-box { background:var(--green); border-color:var(--green); animation:checkPop .3s ease; }
+.check-text { font-size:13px; color:rgba(255,255,255,.82); flex:1; line-height:1.5; word-break:break-all; overflow-wrap:break-word; min-width:0; }
+.check-item.checked .check-text { color:rgba(255,255,255,.5); text-decoration:line-through; }
+.check-counter { font-size:12px; color:var(--blue-light); font-weight:700; text-align:center; margin-top:4px; }
+
+/* ===== クイズ ===== */
+.quiz-card {
+  background:rgba(255,255,255,.04); border:1px solid rgba(45,212,212,.2);
+  border-radius:var(--radius); padding:18px;
+}
+.quiz-header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.quiz-badge { font-size:9px; font-weight:700; letter-spacing:2px; color:var(--blue-light); background:rgba(14,158,158,.25); border:1px solid rgba(45,212,212,.3); border-radius:20px; padding:3px 10px; }
+.quiz-q { font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px; font-weight:900; margin-bottom:14px; line-height:1.5; }
+.quiz-options { display:flex; flex-direction:column; gap:8px; }
+.quiz-opt {
+  padding:13px 16px; border-radius:var(--radius-sm);
+  border:2px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04); cursor:pointer;
+  font-size:13px; color:rgba(255,255,255,.85); line-height:1.5;
+  transition:all .2s;
+}
+.quiz-opt:active { transform:scale(.98); }
+.quiz-opt.correct { background:rgba(34,197,94,.2); border-color:var(--green); color:#86efac; }
+.quiz-opt.wrong   { background:rgba(239,68,68,.15); border-color:var(--red); color:#fca5a5; }
+.quiz-opt.disabled { pointer-events:none; opacity:.5; }
+.quiz-feedback {
+  margin-top:12px; padding:12px 14px; border-radius:var(--radius-sm);
+  display:none; font-size:13px; line-height:1.65;
+}
+.quiz-feedback.show { display:block; }
+.quiz-feedback.ok { background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.3); color:#86efac; }
+.quiz-feedback.ng { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; }
+
+/* ===== ナビゲーションボタン ===== */
+.nav-row { display:flex; gap:10px; margin-top:6px; min-width:0; overflow:hidden; }
+.btn-next {
+  flex:1; padding:17px; min-width:0;
+  background:linear-gradient(135deg,var(--teal) 0%,#0a7070 100%);
+  border:none; border-radius:var(--radius); cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif; font-size:16px; font-weight:900; color:white;
+  box-shadow:0 6px 28px rgba(14,158,158,.45); transition:transform .2s;
+  position:relative; overflow:hidden;
+}
+.btn-next::before {
+  content:''; position:absolute; top:0; left:-100%;
+  width:60%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  animation:shimmer 2.5s linear infinite;
+  background-size:200% 100%;
+}
+.btn-next:active { transform:scale(.97); }
+.btn-prev {
+  width:48px; height:48px; border-radius:50%;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14);
+  font-size:20px; color:white; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; align-self:center; transition:background .2s;
+}
+.btn-prev:active { background:rgba(255,255,255,.12); }
+.btn-home {
+  flex:none; padding:12px 16px; border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14);
+  font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; font-weight:700;
+  color:rgba(255,255,255,.7); cursor:pointer;
+  display:flex; align-items:center; gap:5px; transition:background .2s;
+  white-space:nowrap;
+}
+.btn-home:active { background:rgba(255,255,255,.12); }
+
+/* ===== モーダル（クリア） ===== */
+.modal-overlay {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(4,13,31,.85); backdrop-filter:blur(8px);
+  align-items:flex-end; justify-content:center;
+}
+.modal-overlay.open { display:flex; animation:fadeIn .25s ease; }
+.modal-sheet {
+  width:100%; max-width:430px;
+  background:linear-gradient(180deg,#0a2525 0%,#041515 100%);
+  border-top:1px solid rgba(45,212,212,.28);
+  border-radius:24px 24px 0 0;
+  padding:28px 24px 50px;
+  animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;
+  max-height:90vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.modal-handle { width:38px; height:4px; background:rgba(255,255,255,.14); border-radius:2px; margin:0 auto 22px; }
+.modal-sonobo { width:100px; height:100px; margin:0 auto 14px; animation:heartbeat 2s infinite; }
+.modal-sonobo img { width:100%; height:100%; object-fit:contain; }
+.modal-stars { font-size:28px; margin-bottom:10px; letter-spacing:4px; }
+.modal-title { font-family:'Zen Kaku Gothic New',sans-serif; font-size:22px; font-weight:900; margin-bottom:6px; }
+.modal-planet { font-family:'Orbitron',sans-serif; font-size:11px; color:var(--gold); letter-spacing:2px; margin-bottom:10px; }
+.modal-text { font-size:13px; color:rgba(255,255,255,.6); line-height:1.7; margin-bottom:20px; }
+.modal-reward {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(245,200,66,.08));
+  border:1px solid rgba(245,200,66,.4); border-radius:var(--radius-sm);
+  padding:12px 18px; margin-bottom:20px;
+  font-size:13px; color:var(--gold); font-weight:700;
+}
+.modal-btn {
+  width:100%; padding:16px;
+  background:linear-gradient(135deg,var(--teal),#0a7070);
+  border:none; border-radius:var(--radius-sm); cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif; font-size:16px; font-weight:900; color:white; margin-bottom:10px;
+}
+.modal-btn-sec {
+  width:100%; padding:14px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--radius-sm); cursor:pointer;
+  font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700; color:rgba(255,255,255,.6);
+}
+
+/* ===== ワープオーバーレイ ===== */
+#warpOverlay {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:black; flex-direction:column;
+  align-items:center; justify-content:center; gap:16px;
+}
+.warp-text {
+  font-family:'Orbitron',sans-serif; font-size:14px;
+  color:white; letter-spacing:4px; opacity:0;
+}
+
+/* ===== スペシャル：着陸シーケンス ===== */
+.landing-seq {
+  background:rgba(0,0,0,.4); border:1px solid rgba(45,212,212,.22);
+  border-radius:var(--radius-sm); padding:14px;
+  font-family:monospace; font-size:11px;
+  color:rgba(45,212,212,.8);
+  line-height:2;
+}
+.landing-seq .line { opacity:0; animation:fadeIn .3s ease forwards; }
+.landing-seq .line.c1 { animation-delay:.1s; }
+.landing-seq .line.c2 { animation-delay:.4s; }
+.landing-seq .line.c3 { animation-delay:.7s; }
+.landing-seq .line.c4 { animation-delay:1s; }
+.landing-seq .line.c5 { animation-delay:1.3s; color:var(--green); font-weight:700; }
+.cursor-blink { animation:pulse .8s infinite; }
+
+/* ===== アップグレード表示（宇宙食） ===== */
+.upgrade-card {
+  background:linear-gradient(135deg,rgba(45,212,212,.15),rgba(14,158,158,.1));
+  border:1px solid rgba(45,212,212,.35); border-radius:var(--radius);
+  padding:16px; text-align:center;
+}
+.upgrade-icon { font-size:32px; margin-bottom:8px; animation:float 3s ease-in-out infinite; }
+.upgrade-title { font-family:'Orbitron',sans-serif; font-size:14px; color:var(--cyan); font-weight:700; margin-bottom:6px; }
+.upgrade-desc { font-size:12px; color:rgba(255,255,255,.6); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="bg-canvas" id="bgCanvas"></div>
+<div class="planet-deco"></div>
+<div id="warpOverlay">
+  <div class="warp-text" id="warpText">WARP DRIVE ENGAGED</div>
+</div>
+
+<div class="app-wrapper">
+
+  <!-- ヘッダー -->
+  <div class="page-header">
+    <a class="back-btn" onclick="warpTo('home.html')">←</a>
+    <div class="header-info">
+      <div class="page-step-label">🪐 PLANET READINESS — MISSION 3</div>
+      <div class="page-title">エコーを当てる前に 🔧</div>
+    </div>
+    <div class="header-prog" id="headerProg">1 / 9</div>
+  </div>
+
+  <div class="step-progress-bar">
+    <div class="step-progress-fill" id="progressFill" style="width:11.1%"></div>
+  </div>
+  <div class="step-progress-dots">
+    <div class="dot active" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+    <div class="dot" id="dot5"></div>
+    <div class="dot" id="dot6"></div>
+    <div class="dot" id="dot7"></div>
+    <div class="dot" id="dot8"></div>
+    <div class="dot" id="dot9"></div>
+  </div>
+
+  <div class="scroll-content">
+  <div class="content-pad">
+
+  <!-- ===== SECTION 1: 惑星着陸イントロ ===== -->
+  <div class="slide-section active" id="sec1">
+
+    <div class="planet-arrival-banner">
+      <div class="arrival-label">▶ INCOMING TRANSMISSION</div>
+      <div class="arrival-planet">惑星レディネス</div>
+      <div class="arrival-subtitle">Planet Readiness — 到達確認</div>
+      <div class="arrival-badge">🚀 着陸シーケンス開始</div>
+      <div class="scan-effect"></div>
+    </div>
+
+    <div class="landing-seq">
+      <div class="line c1">[ システムログ ]</div>
+      <div class="line c2">▶ 惑星レディネス 軌道進入中...</div>
+      <div class="line c3">▶ 大気圏突入 — 姿勢制御 OK</div>
+      <div class="line c4">▶ 装備スキャン完了</div>
+      <div class="line c5">■ 着陸完了 — ミッション開始 <span class="cursor-blink">█</span></div>
+    </div>
+
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_2.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">
+          キャプテン、<em>惑星レディネス</em>へようこそ！<br>
+          ここでは「エコーを当てる前の準備」を学びます。準備が完璧なら、検査もスムーズ。しっかりマスターしましょう！🛸
+        </div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">MISSION 3 — ミッション概要</div>
+      <div class="slide-heading">エコーを当てる前に</div>
+      <div class="slide-sub">機器の準備から患者さんのポジショニングまで、FASTを安全・確実に行うための手順を習得します。このミッションをクリアすると、宇宙食がゲットできます！</div>
+    </div>
+
+    <div class="upgrade-card">
+      <div class="upgrade-icon">🍬</div>
+      <div class="upgrade-title">SPACE FOOD UNLOCKED</div>
+      <div class="upgrade-desc">ミッションクリアで「エコーゼリー味のグミ」を獲得！<br>食べるとソノボくんの<em style="color:var(--cyan);font-style:normal">「内面」</em>が透視できる…？</div>
+    </div>
+
+    <div class="nav-row">
+      
+      <button class="btn-next" onclick="goNext()">ミッション開始 🚀</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: 準備の7ステップ ===== -->
+  <div class="slide-section" id="sec2">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_7.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">まずは全体の流れを確認！<em>7ステップで準備完了</em>です。ミッション手順書を確認してください、キャプテン📋</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 1 — ミッション手順書</div>
+      <div class="slide-heading">準備の手順</div>
+      <div class="slide-sub">この7ステップを順番に行えば、必ず準備完了！手順の遵守が任務成功の鍵です。</div>
+    </div>
+
+    <div class="mission-log">
+      <div class="log-header">
+        <div class="log-dot"></div>
+        MISSION PROTOCOL — FAST SETUP
+      </div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">①</div>
+        <div class="step-text"><p><strong>コードを踏まないように運ぶ</strong></p><p class="step-note">機器破損・転倒リスクを回避</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">②</div>
+        <div class="step-text"><p><strong>電源を入れる</strong></p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">③</div>
+        <div class="step-text"><p><strong>プリセットを選択する</strong></p><p class="step-note">検査部位に最適化された設定を呼び出す</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">④</div>
+        <div class="step-text"><p><strong>プローブを選ぶ</strong></p><p class="step-note">FASTには<strong>コンベックス（扇型）</strong>プローブを使用</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">⑤</div>
+        <div class="step-text"><p><strong>マーカーの向きを確認する</strong></p><p class="step-note">向きを間違えると画像が左右反転する！</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">⑥</div>
+        <div class="step-text"><p><strong>ゼリーをたっぷり塗る！</strong></p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">⑦</div>
+        <div class="step-text"><p><strong>患者さんの体勢を整える</strong></p><p class="step-note">仰臥位（仰向け）が基本。腕は上げてもらうと◎</p></div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <span class="hi-icon">⭐</span>
+      <p>患者さんと画面が<strong>同じ視野に入るよう</strong>座ることがポイント！目線の往復を最小化しよう。</p>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：プリセット →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 3: プリセット ===== -->
+  <div class="slide-section" id="sec3">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_4.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">「プリセット」という言葉、聞いたことありますか？<em>宇宙船のナビゲーション設定みたいなもの</em>です。超わかりやすく解説します🔍</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 2 — 設定ファイル解析</div>
+      <div class="slide-heading">プリセットとは？</div>
+      <div class="slide-sub">超音波装置に最初から登録された「検査別の最適設定」のこと。宇宙船のコースプリセットのようなイメージ！</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">💡</div>
+        <div class="step-text"><p>例）<strong>Abdominal、eFAST、Cardiac</strong> など</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">⚙</div>
+        <div class="step-text"><p>プリセットを選ぶと、<strong>深さ・周波数・ゲイン（明るさ）</strong>などが自動調整される</p></div>
+      </div>
+    </div>
+
+    <div class="photo-card">
+      <img src="assets/preset_screen.jpg" alt="プリセット表示画面" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div style="display:none;padding:32px;text-align:center;color:rgba(255,255,255,.35);font-size:12px;">📷 プリセット画面<br><span style="font-size:10px">（画像はGitHubのassetsフォルダに配置）</span></div>
+      <div class="photo-caption">画面右上に「ABDOMINAL1」と表示されているのがプリセット名</div>
+    </div>
+
+    <div class="highlight-box">
+      <span class="hi-icon">🎯</span>
+      <p>FASTでは <strong>「Abdominal」</strong>や<strong>「eFAST」</strong>プリセットを選択しよう！ ※単に「腹部」表記の場合もある。</p>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：プローブ →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 4: プローブ ===== -->
+  <div class="slide-section" id="sec4">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_5.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">プローブはエコーの「センサー」部分！<em>FASTで使う形を覚えておく</em>のがこのセクションの目標です。</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 3 — センサー選択</div>
+      <div class="slide-heading">プローブについて</div>
+      <div class="slide-sub">FASTで使うのは「コンベックス型」→ 腹部の広範囲・深部を見るのに最適</div>
+    </div>
+
+    <div class="photo-card">
+      <img src="assets/convex_probe.jpg" alt="コンベックスプローブ" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div style="display:none;padding:32px;text-align:center;color:rgba(255,255,255,.35);font-size:12px;">📷 コンベックス型プローブ<br><span style="font-size:10px">（画像はGitHubのassetsフォルダに配置）</span></div>
+      <div class="photo-caption">コンベックス型プローブ（扇型の超音波を発する）</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">🔊</div>
+        <div class="step-text"><p>コンベックス型は<strong>扇状に超音波</strong>を発する</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">🫀</div>
+        <div class="step-text"><p><strong>腹部の広範囲、深部</strong>を一度に観察できる</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">🔒</div>
+        <div class="step-text"><p>リニア型（平型）はFASTには使わない</p></div>
+      </div>
+    </div>
+
+    <!-- クイズ Q1 -->
+    <div class="quiz-card" id="q1">
+      <div class="quiz-header">
+        <div class="quiz-badge">⚡ MISSION QUIZ #1</div>
+      </div>
+      <div class="quiz-q">❓ FASTで使うプローブはどれ？</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="answerQ('q1',this,false)">① リニア型（平型）</div>
+        <div class="quiz-opt" onclick="answerQ('q1',this,true)">② コンベックス型（扇型）</div>
+        <div class="quiz-opt" onclick="answerQ('q1',this,false)">③ セクター型（心臓用）</div>
+      </div>
+      <div class="quiz-feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：マーカー →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 5: マーカー ===== -->
+  <div class="slide-section" id="sec5">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_8.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">⚠️ 重要警告！マーカーの向きを間違えると画像が<em>左右反転</em>してしまいます。宇宙船のコンパスと同じくらい大切な情報です！</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 4 — 方向センサー校正</div>
+      <div class="slide-heading">マーカーの向き</div>
+      <div class="slide-sub">プローブの「マーカー（突起・印）」は、画面上の方向と対応しています。</div>
+    </div>
+
+    <div class="photo-card">
+  　  <img src="assets/marker_correct.png" alt="マーカーの正しい向き" style="width: 100%; height: auto;">
+ 　　 <div class="photo-caption" style="color:rgba(34,197,94,.8);">マーカーと画面上のマークが対応している</div>
+　　</div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">📺</div>
+        <div class="step-text"><p>画面上のマーク（この画像ではT）がマーカー側に対応している</p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">📌</div>
+        <div class="step-text"><p>今回はアプリ内の画像と同じ向きになるように当ててくれたら大丈夫！</p></div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <span style="font-size:20px;flex-shrink:0;margin-top:1px;">⚠️</span>
+      <p><strong>必ず当てる前に確認！</strong><br>向きを間違えたまま進めると、臓器の位置関係が逆に映り、誤った判断につながる可能性がある</p>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：ゼリー →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 6: ゼリー ===== -->
+  <div class="slide-section" id="sec6">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_4.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">ゼリーはケチらないで！<em>たっぷり使うことが画像の質に直結</em>します。なぜか一緒に見てみましょう💧</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 5 — 接触媒介剤</div>
+      <div class="slide-heading">ゼリーをたっぷり塗る</div>
+      <div class="slide-sub">超音波ゼリーは、プローブと皮膚の間の「空気」を除去するための必須アイテム！</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">💧</div>
+        <div class="step-text"><p>超音波は<strong>空気をほとんど通過できない</strong></p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">🔬</div>
+        <div class="step-text"><p>ゼリーが少ないと→ <strong>空気層ができる→画像が途切れる</strong></p></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">✅</div>
+        <div class="step-text"><p>迷ったら<strong>多めに！</strong>余分なゼリーは拭けば良い</p></div>
+      </div>
+    </div>
+
+    <!-- クイズ Q2 -->
+    <div class="quiz-card" id="q2">
+      <div class="quiz-header">
+        <div class="quiz-badge">⚡ MISSION QUIZ #2</div>
+      </div>
+      <div class="quiz-q">❓ ゼリーが不足するとどうなる？</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="answerQ('q2',this,false)">① 特に問題なし</div>
+        <div class="quiz-opt" onclick="answerQ('q2',this,true)">② 空気層ができて画像が途切れる</div>
+        <div class="quiz-opt" onclick="answerQ('q2',this,false)">③ プローブが壊れる</div>
+      </div>
+      <div class="quiz-feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：ポジショニング →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 7: ポジショニング ===== -->
+  <div class="slide-section" id="sec7">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_2.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">患者さんのポジショニングと<em>術者の立ち位置</em>、意外と盲点です！正しい位置取りで検査効率がぐっと上がります🧭</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 5.5 — ポジショニング</div>
+      <div class="slide-heading">座る位置と視野の確保</div>
+      <div class="slide-sub">「患者さんと画面が同時に見える」位置に座ることが、FAST実施の基本中の基本。</div>
+    </div>
+
+    <div class="photo-card">
+      <img src="assets/positioning.png" alt="ポジショニングの写真" style="width:100%;height:auto;display:block;">
+      <div class="photo-caption">左手で設定をすぐ変えられ、かつ患者さんと画面が同一視野に入る位置取り</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-badge">👁</div>
+        <div class="step-text">
+          <p><strong>視野に患者さんと画面が両方入る</strong></p>
+          <p class="step-note">目線の往復を最小にすることで、見落としを防ぐ</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">✋</div>
+        <div class="step-text">
+          <p><strong>左手で設定をすぐに変えられる位置</strong></p>
+          <p class="step-note">プローブは右手で持ち、左手は設定をすぐに変えられる体勢が理想</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-badge">🛏</div>
+        <div class="step-text">
+          <p><strong>患者さんは仰臥位（仰向け）が基本</strong></p>
+          <p class="step-note">腕を頭の上に挙げてもらうと肋間が広がり、観察しやすくなる</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      <button class="btn-next" onclick="goNext()">次：扇動操作 →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 8: 扇動操作 ===== -->
+  <div class="slide-section" id="sec8">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_5.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text"><em>「扇動（せんどう）操作」</em>は、FASTで最も重要なプローブ操作テクニック！先端を固定して上部を前後に動かします🌀</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 6 — プローブ操作技術</div>
+      <div class="slide-heading">扇動操作とは？</div>
+      <div class="slide-sub">プローブの「先端（皮膚との接触点）」を固定し、上部を前後に傾ける操作。これで広い範囲を走査できる。</div>
+    </div>
+
+    <div class="fan-demo">
+      <div class="fan-title">🔄 扇動操作のアニメーション</div>
+      <div class="fan-svg-wrap">
+        <svg width="160" height="120" viewBox="0 0 160 120">
+          <defs>
+            <radialGradient id="fanGrad" cx="50%" cy="100%" r="80%">
+              <stop offset="0%" stop-color="#3d8ef0" stop-opacity=".4"/>
+              <stop offset="100%" stop-color="#3d8ef0" stop-opacity=".05"/>
+            </radialGradient>
+          </defs>
+          <!-- 扇形エリア -->
+          <path d="M80,110 L20,20 Q80,5 140,20 Z" fill="url(#fanGrad)" stroke="rgba(61,142,240,.3)" stroke-width="1"/>
+          <!-- プローブ本体 -->
+          <g class="fan-probe">
+            <rect x="68" y="30" width="24" height="65" rx="8" fill="#1565d8" stroke="rgba(61,142,240,.8)" stroke-width="1.5"/>
+            <rect x="72" y="26" width="16" height="8" rx="3" fill="rgba(61,142,240,.6)"/>
+            <!-- マーカー -->
+            <circle cx="72" cy="50" r="3" fill="var(--gold)"/>
+          </g>
+          <!-- 固定点 -->
+          <circle cx="80" cy="110" r="5" fill="var(--green)" opacity=".8"/>
+          <text x="88" y="113" fill="rgba(255,255,255,.5)" font-size="9">固定点</text>
+        </svg>
+      </div>
+      <div class="fan-note">先端を固定 → 上部を前後に傾ける</div>
+    </div>
+
+    <div class="dual-photo">
+      <div class="photo-card">
+        <img src="assets/fan_operation1.png" alt="扇動操作" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div style="display:none;padding:24px 8px;text-align:center;color:rgba(255,255,255,.3);font-size:11px;">📷 心窩部での扇動</div>
+        <div class="photo-caption">心窩部での扇動操作</div>
+      </div>
+      <div class="photo-card">
+        <img src="assets/fan_operation2.png" alt="扇動操作2" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div style="display:none;padding:24px 8px;text-align:center;color:rgba(255,255,255,.3);font-size:11px;">📷 側胸部での扇動</div>
+        <div class="photo-caption">側胸部で使う扇動</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <span style="font-size:20px;flex-shrink:0;margin-top:1px;">⚠️</span>
+      <p><strong>評価が終わるまで、必ず扇動操作で全体を確認すること！</strong><br>1カ所でフリーズして判断すると、少量の液体を見逃す可能性がある</p>
+    </div>
+
+    <!-- クイズ Q3 -->
+    <div class="quiz-card" id="q3">
+      <div class="quiz-header">
+        <div class="quiz-badge">⚡ MISSION QUIZ #3</div>
+      </div>
+      <div class="quiz-q">❓ 扇動操作で固定するのはどこ？</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="answerQ('q3',this,false)">① プローブのケーブル側（上部）</div>
+        <div class="quiz-opt" onclick="answerQ('q3',this,true)">② プローブの先端（皮膚との接触点）</div>
+        <div class="quiz-opt" onclick="answerQ('q3',this,false)">③ プローブ全体を動かす</div>
+      </div>
+      <div class="quiz-feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" onclick="goNext()">次：チェックリスト →</button>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 9: チェックリスト ===== -->
+  <div class="slide-section" id="sec9">
+    <div class="sonobo-row">
+      <div class="sonobo-wrap">
+        <img src="assets/sonobo_3.png" alt="ソノボくん" class="sonobo-float">
+        <div class="sonobo-glow"></div>
+      </div>
+      <div class="sonobo-bubble">
+        <div class="sb-name">🤖 ソノボくん</div>
+        <div class="sb-text">最後の関門！<em>発射前チェックリスト</em>を確認しましょう。全項目をタップでチェックして、ミッション完了です✅</div>
+      </div>
+    </div>
+
+    <div class="story-card">
+      <div class="slide-num">SECTION 7 — 発射前チェック</div>
+      <div class="slide-heading">準備チェックリスト</div>
+      <div class="slide-sub">FAST開始前に全項目をクリア！宇宙船の発射前チェックと同じく、省略不可です。</div>
+    </div>
+
+    <div class="checklist" id="checklist">
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">① コードを踏まないよう機器を運んだ</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">② 電源を入れた</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">③ プリセットを選択した（Abdominal / eFAST等）</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">④ コンベックスプローブを選んだ</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">⑤ マーカーの向きを確認した</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">⑥ ゼリーをたっぷり塗った</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">⑦ 患者さんを仰臥位にした（腕を挙げてもらう）</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">⑧ 患者さんと画面が同一視野に入る位置に立った</div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box">□</div>
+        <div class="check-text">⑨ 左手ですぐに設定が変えられる</div>
+      </div>
+    </div>
+
+    <div class="check-counter" id="checkCounter">0 / 9 チェック完了</div>
+
+    <div id="allCheckedMsg" style="display:none;">
+      <div class="highlight-box">
+        <span class="hi-icon">🎉</span>
+        <p>全項目チェック完了！準備は完璧です！</p>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">←</button>
+      
+      <button class="btn-next" id="finishBtn" onclick="showComplete()">MISSION 3 完了！🚀</button>
+    </div>
+  </div>
+
+  </div><!-- /content-pad -->
+  </div><!-- /scroll-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ===== クリアモーダル（宇宙食グミ） ===== -->
+<div class="modal-overlay" id="completeModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-sonobo"><img src="assets/sonobo_6.png" alt="ソノボくん"></div>
+    <div class="modal-stars">⭐⭐⭐</div>
+    <div class="modal-title">惑星レディネス クリア！</div>
+    <div class="modal-planet">PLANET READINESS — CLEARED</div>
+    <div class="modal-reward">🍬 宇宙食：エコーゼリー味のグミ 獲得！</div>
+    <div class="modal-text">
+      準備の手順・プローブの選び方・扇動操作をマスターした！<br>
+      <span style="color:var(--cyan);font-weight:700">エコーゼリー味のグミ</span>を食べると、ソノボくんの「内面」が透視できるらしい…！？
+    </div>
+    <button class="modal-btn" id="eatGummyBtn" onclick="eatGummy()" style="background:linear-gradient(135deg,#0e9e9e,#2dd4d4);font-size:15px;">
+      🍬 グミを食べる！
+    </button>
+    <button class="modal-btn-sec" onclick="document.getElementById('completeModal').classList.remove('open')">もう一度確認する</button>
+  </div>
+</div>
+
+<!-- ===== ソノボくんプロフィール画面 ===== -->
+<div class="modal-overlay" id="sonoboProfileModal">
+  <div class="modal-sheet" style="padding-bottom:40px;">
+    <div class="modal-handle"></div>
+    <div id="profileContent">
+      <!-- ヘッダー -->
+      <div style="background:linear-gradient(135deg,rgba(45,212,212,.15),rgba(14,158,158,.08));border:1px solid rgba(45,212,212,.3);border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#2dd4d4,transparent);opacity:.8;"></div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:9px;color:var(--cyan);letter-spacing:3px;margin-bottom:10px;">◆ CLASSIFIED FILE — SONOBO INTEL ◆</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="position:relative;flex-shrink:0;">
+            <img src="assets/sonobo_1.png" alt="ソノボくん" style="width:80px;height:80px;object-fit:contain;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(45,212,212,.6));">
+            <div style="position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(45,212,212,.4);animation:pulse 2s infinite;"></div>
+          </div>
+          <div style="text-align:left;flex:1;min-width:0;">
+            <div style="font-size:10px;color:var(--cyan);font-weight:700;letter-spacing:2px;margin-bottom:4px;">IDENTITY CONFIRMED</div>
+            <div style="font-family:'Zen Kaku Gothic New',sans-serif;font-size:18px;font-weight:900;line-height:1.2;margin-bottom:4px;">ソノボ・エコー・<br>ウォーカー</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.45);">Sonobo Echo Walker</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 知られざる過去 -->
+      <div style="background:rgba(0,0,0,.35);border:1px solid rgba(45,212,212,.15);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:18px;">🌌</span>
+          <span style="font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:2px;">知られざる過去</span>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,.82);line-height:1.75;">
+          暗い宇宙の塵に埋もれていたソノボ。廃棄寸前で「医学教育をより良くしたい」という開発者の熱意に拾われ、<span style="color:var(--cyan);font-weight:700">POCUSサポーターAI</span>として現在活躍中。
+        </div>
+      </div>
+
+      <!-- 意外な趣味 -->
+      <div style="background:rgba(0,0,0,.35);border:1px solid rgba(45,212,212,.15);border-radius:12px;padding:14px;margin-bottom:18px;text-align:left;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:18px;">🎧</span>
+          <span style="font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:2px;">意外な趣味</span>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,.82);line-height:1.75;">
+          星が爆発する時の音をサンプリングして、<span style="color:var(--gold);font-weight:700">超高速のユーロビート</span>にリミックスして踊る。
+        </div>
+      </div>
+
+      <!-- ナビボタン -->
+      <button class="modal-btn" onclick="warpTo('home.html?screen=home&from=step3')" style="margin-bottom:10px;">
+        🏠 マップに戻る
+      </button>
+      <button class="modal-btn" onclick="warpTo('step4.html')" style="background:linear-gradient(135deg,#0e9e9e,#0a7070);margin-bottom:10px;">
+        🪐 次の惑星プロービアへ →
+      </button>
+      <button class="modal-btn-sec" onclick="document.getElementById('sonoboProfileModal').classList.remove('open')">
+        もう一度確認する
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 背景星空 =====
+function initBg() {
+  const bg = document.getElementById('bgCanvas');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${Math.random()*3+2}s;--delay:${Math.random()*4}s;--op:${Math.random()*.6+.2};`;
+    bg.appendChild(s);
+  }
+}
+initBg();
+
+// ===== 音 =====
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+const SOUNDS = {
+  correct: () => {
+    const ctx = getCtx();
+    [523,659,784,1047].forEach((freq,i) => {
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=freq; o.type='sine';
+      const t=ctx.currentTime+i*.1;
+      g.gain.setValueAtTime(.3,t); g.gain.exponentialRampToValueAtTime(.001,t+.4);
+      o.start(t); o.stop(t+.4);
+    });
+  },
+  wrong: () => {
+    const ctx = getCtx();
+    [220,196].forEach((freq,i) => {
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=freq; o.type='sawtooth';
+      const t=ctx.currentTime+i*.15;
+      g.gain.setValueAtTime(.2,t); g.gain.exponentialRampToValueAtTime(.001,t+.3);
+      o.start(t); o.stop(t+.3);
+    });
+  },
+  tap: () => {
+    const ctx = getCtx();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=800; o.type='sine';
+    g.gain.setValueAtTime(.1,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.08);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime+.08);
+  },
+  reward: () => {
+    const ctx = getCtx();
+    [523,659,784,1047,1319].forEach((freq,i) => {
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=freq; o.type='triangle';
+      const t=ctx.currentTime+i*.12;
+      g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.5);
+      o.start(t); o.stop(t+.5);
+    });
+  },
+  warp: () => {
+    const ctx = getCtx();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(100,ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(2000,ctx.currentTime+.6);
+    g.gain.setValueAtTime(.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.8);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime+.8);
+  }
+};
+function playSound(name) { try { SOUNDS[name] && SOUNDS[name](); } catch(e){} }
+
+// ===== ワープ演出 =====
+function warpTo(url) {
+  playSound('warp');
+  const overlay = document.getElementById('warpOverlay');
+  const txt = document.getElementById('warpText');
+  overlay.style.display = 'flex';
+  // ストリーク
+  for (let i = 0; i < 20; i++) {
+    const streak = document.createElement('div');
+    const angle = Math.random()*360;
+    const len = Math.random()*150+50;
+    streak.style.cssText = `position:absolute;left:50%;top:50%;width:${len}px;height:1.5px;background:linear-gradient(90deg,white,transparent);transform-origin:left center;transform:rotate(${angle}deg) scaleX(0);animation:warpStreak .4s .05s ease forwards;`;
+    overlay.appendChild(streak);
+  }
+  overlay.animate([{opacity:0},{opacity:1}],{duration:150,fill:'forwards'}).finished.then(() => {
+    txt.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'});
+    setTimeout(() => {
+      overlay.animate([{opacity:1},{opacity:0}],{duration:250,fill:'forwards'}).finished.then(() => {
+        location.href = url;
+      });
+    }, 600);
+  });
+}
+
+// ===== ページ管理 =====
+const TOTAL = 9;
+let current = 1;
+
+function updateUI() {
+  document.querySelectorAll('.slide-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec'+current).classList.add('active');
+  document.getElementById('progressFill').style.width = (current/TOTAL*100)+'%';
+  document.getElementById('headerProg').textContent = current+' / '+TOTAL;
+  // ドット更新
+  for (let i=1; i<=TOTAL; i++) {
+    const d = document.getElementById('dot'+i);
+    if (!d) continue;
+    d.className = 'dot';
+    if (i < current) d.classList.add('done');
+    else if (i === current) d.classList.add('active');
+  }
+  window.scrollTo(0,0);
+  playSound('tap');
+}
+
+function goNext() { if(current < TOTAL){ current++; updateUI(); } }
+function goPrev() { if(current > 1){ current--; updateUI(); } }
+
+// ===== クイズ =====
+const quizMsgs = {
+  q1: {
+    ok: '✅ 正解！コンベックス型は扇状に超音波を発し、腹部の広い範囲を観察できる。FASTの必需品！',
+    ng: '❌ 惜しい！FASTではコンベックス型（扇型）プローブを使う。腹部の広い範囲を観察できるのが特徴！'
+  },
+  q2: {
+    ok: '✅ 正解！超音波は空気をほとんど通過できないため、ゼリー不足は画像品質を大幅に低下させる。',
+    ng: '❌ 惜しい！ゼリーが少ないと超音波が空気で遮断され、画像が途切れてしまう。多めに使う習慣をつけよう！'
+  },
+  q3: {
+    ok: '✅ 正解！プローブの先端（皮膚との接触部）を固定し、上部を前後に動かすのが扇動操作！',
+    ng: '❌ 惜しい！プローブの先端（皮膚との接触点）を固定して、上部を前後に傾けるのが正しい扇動操作！'
+  }
+};
+
+function answerQ(qid, el, correct) {
+  const card = document.getElementById(qid);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const fb = document.getElementById(qid+'-fb');
+  opts.forEach(o => o.classList.add('disabled'));
+  if (correct) {
+    el.classList.add('correct');
+    fb.className = 'quiz-feedback show ok';
+    fb.textContent = quizMsgs[qid].ok;
+    playSound('correct');
+  } else {
+    el.classList.add('wrong');
+    fb.className = 'quiz-feedback show ng';
+    fb.textContent = quizMsgs[qid].ng;
+    playSound('wrong');
+  }
+}
+
+// ===== チェックリスト =====
+function toggleCheck(item) {
+  item.classList.toggle('checked');
+  const box = item.querySelector('.check-box');
+  box.textContent = item.classList.contains('checked') ? '✓' : '□';
+  playSound('tap');
+  updateCheckCount();
+}
+function updateCheckCount() {
+  const items = document.querySelectorAll('.check-item');
+  const checked = document.querySelectorAll('.check-item.checked').length;
+  document.getElementById('checkCounter').textContent = checked+' / '+items.length+' チェック完了';
+  document.getElementById('allCheckedMsg').style.display = (checked === items.length) ? 'block' : 'none';
+}
+
+// ===== クリアモーダル =====
+function showComplete() {
+  playSound('reward');
+  document.getElementById('completeModal').classList.add('open');
+}
+
+// ===== グミを食べる演出 =====
+function eatGummy() {
+  const btn = document.getElementById('eatGummyBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = '✨ もぐもぐ…';
+  btn.style.opacity = '0.6';
+  playSound('reward');
+  setTimeout(() => {
+    document.getElementById('completeModal').classList.remove('open');
+    document.getElementById('sonoboProfileModal').classList.add('open');
+    playSound('warp');
+    btn.disabled = false;
+    btn.textContent = '🍬 グミを食べる！';
+    btn.style.opacity = '1';
+  }, 1000);
+}
+</script>
+</body>
+</html>
